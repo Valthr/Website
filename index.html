@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valthr — Autonomous Drone Delivery</title>
+  <meta name="description" content="Valthr delivers at the speed of sight. Autonomous drone logistics for industrial facilities, powered by fleet intelligence.">
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/images/logo-mark.png" type="image/png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'accent':      '#d97706',
+            'accent-blue': '#0284c7',
+            'void':        '#f8f7f4',
+            'surface':     '#ffffff',
+            'panel':       '#f3f2ef',
+            'raised':      '#eae9e5',
+            'dim':         '#e5e3de',
+            'bright':      '#ccc9c0',
+            'muted':       '#6b7280',
+            'subtle':      '#9ca3af',
+          },
+          fontFamily: {
+            syne:    ['Syne', 'sans-serif'],
+            grotesk: ['Space Grotesk', 'sans-serif'],
+            mono:    ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- marked.js for chatbot markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- intro.js guided tour -->
+  <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
+  <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
+
+  <!-- Site data (load before scripts that depend on them) -->
+  <script src="assets/data/network.js"></script>
+  <script src="assets/data/report-extract.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="assets/css/main.css?v=4">
+
+  <!-- Font size overrides — inline so never cached, always wins -->
+  <style>
+    html { font-size: 16px !important; }
+    body { font-size: 1rem !important; }
+    .about-payload-body p,
+    .about-split-copy p,
+    .feature-slot-placeholder p,
+    .team-bio,
+    .chat-bubble,
+    #chat-input { font-size: 1rem !important; }
+    .queue-item,
+    .queue-route,
+    .fleet-drone-label,
+    .sim-btn-add,
+    .chat-disclaimer,
+    footer .footer-meta { font-size: 0.875rem !important; }
+    .section-eyebrow { font-size: 0.75rem !important; }
+    .metric-value { font-size: 1.1rem !important; }
+    .metric-label { font-size: 0.75rem !important; }
+  </style>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { background: #f8f7f4; color: #111111; }
+  </style>
+</head>
+
+<body class="font-grotesk overflow-x-hidden">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       NAV
+  ════════════════════════════════════════════════════════════════════════ -->
+  <nav id="site-nav" class="fixed top-0 left-0 right-0 z-50" role="navigation" aria-label="Main navigation">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+
+      <a href="#hero" class="nav-brand" style="text-decoration:none">
+        <img src="assets/images/logo.png" alt="Valthr" class="nav-logo">
+        <span class="nav-logo-x" aria-hidden="true">×</span>
+        <img src="assets/images/bapco-logo.png" alt="Bapco Refining" class="nav-logo nav-logo-bapco">
+      </a>
+
+      <!-- Desktop links -->
+      <ul class="nav-links hidden md:flex items-center gap-8 list-none m-0 p-0" role="list">
+        <li><a href="#about">About</a></li>
+        <li><a href="#simulation">Simulation</a></li>
+        <li><a href="#chatbot">Research</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#team">Team</a></li>
+      </ul>
+
+      <!-- Mobile toggle -->
+      <button id="nav-mobile-btn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="nav-mobile-menu">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <line x1="2" y1="5"  x2="20" y2="5"  stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="2" y1="11" x2="20" y2="11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="2" y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="nav-mobile-menu" role="menu" aria-label="Mobile navigation">
+      <a href="#about"      role="menuitem">About</a>
+      <a href="#simulation" role="menuitem">Simulation</a>
+      <a href="#chatbot"    role="menuitem">Research</a>
+      <a href="#features"   role="menuitem">Features</a>
+      <a href="#team"       role="menuitem">Team</a>
+    </div>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       HERO
+  ════════════════════════════════════════════════════════════════════════ -->
+  <section id="hero" class="relative min-h-screen flex items-center overflow-hidden">
+
+    <!-- Video background -->
+    <video class="hero-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+      <source src="assets/videos/hero-video.mp4" type="video/mp4">
+    </video>
+
+    <!-- Dark overlay -->
+    <div class="hero-overlay" aria-hidden="true"></div>
+
+    <!-- Grid overlay -->
+    <div class="hero-grid-overlay" aria-hidden="true"></div>
+
+    <!-- Content -->
+    <div class="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-16 w-full">
+
+      <div class="max-w-3xl">
+        <p class="font-mono text-accent text-[0.8rem] tracking-[0.25em] uppercase mb-6">
+          BAPCO Network &nbsp;·&nbsp; 9 Stations &nbsp;·&nbsp; 3-Drone Fleet &nbsp;·&nbsp; Bahrain
+        </p>
+
+        <h1 class="font-syne font-extrabold text-[clamp(2.8rem,8vw,6.5rem)] leading-[0.95] mb-8 tracking-tight text-white">
+          DELIVER<br>
+          AT THE<br>
+          <span class="text-accent">SPEED OF<br>SIGHT</span>
+        </h1>
+
+        <p class="hero-body-text text-lg max-w-lg mb-10 leading-relaxed font-grotesk font-light">
+          Autonomous drone logistics optimised by fleet intelligence.
+          Zero traffic. Zero delay. Precision routing across your facility.
+        </p>
+
+        <div class="flex flex-wrap gap-4 items-center">
+          <a href="#simulation" class="btn-primary" aria-label="View live simulation">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM6 5.5l5 2.5-5 2.5V5.5z"/>
+            </svg>
+            View Live Simulation
+          </a>
+          <a href="#about" class="btn-secondary btn-secondary-hero" aria-label="Learn how it works">
+            How It Works
+          </a>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="flex flex-wrap gap-8 mt-16" aria-label="Key statistics">
+          <div>
+            <p class="font-mono text-[0.75rem] hero-stat-label tracking-widest uppercase mb-1">Network</p>
+            <p class="font-mono text-accent text-xl font-medium">9 Stations</p>
+          </div>
+          <div>
+            <p class="font-mono text-[0.75rem] hero-stat-label tracking-widest uppercase mb-1">Routes</p>
+            <p class="font-mono text-accent text-xl font-medium">17 Edges</p>
+          </div>
+          <div>
+            <p class="font-mono text-[0.75rem] hero-stat-label tracking-widest uppercase mb-1">Fleet</p>
+            <p class="font-mono text-accent text-xl font-medium">3 Drones</p>
+          </div>
+          <div>
+            <p class="font-mono text-[0.75rem] hero-stat-label tracking-widest uppercase mb-1">Cruise Speed</p>
+            <p class="font-mono text-accent text-xl font-medium">30 km/h</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll cue -->
+    <div id="scroll-cue" aria-hidden="true">Scroll</div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       ABOUT
+  ════════════════════════════════════════════════════════════════════════ -->
+  <section id="about" class="bg-surface" aria-label="About Valthr">
+
+    <div class="max-w-7xl mx-auto px-6 py-24">
+
+      <!-- ── The Challenge (image right) ── -->
+      <div class="about-split about-split-reverse reveal-group">
+        <div class="about-split-copy reveal-item">
+          <span class="section-eyebrow">The Challenge</span>
+          <h2 class="about-split-title">Refinery logistics, rethought from the air.</h2>
+          <p>
+            BAPCO's 2.5 × 2 km refinery still moves lab samples, spare parts and safety gear by hand.
+            Every errand means delays and sends people through hazardous zones that drones could cross in minutes.
+          </p>
+          <p>
+            Manual transport ties up skilled technicians in routine logistics, slows lab turnaround, and leaves
+            critical work waiting on a courier who's still walking across the site.
+          </p>
+        </div>
+        <figure class="about-split-media reveal-item">
+          <img src="assets/images/drone-flying-over-refinery.png" alt="Aerial view of the BAPCO refinery at sunset" loading="lazy">
+          <figcaption>BAPCO Refinery, Bahrain</figcaption>
+        </figure>
+      </div>
+
+      <!-- ── The Valthr Proposal (image left) ── -->
+      <div class="about-split reveal-group">
+        <figure class="about-split-media reveal-item">
+          <img src="assets/images/field-worker-using-tablet.png" alt="BAPCO technician in PPE reviewing work orders on a tablet inside the refinery" loading="lazy">
+          <figcaption>Today, logistics moves at walking pace</figcaption>
+        </figure>
+        <div class="about-split-copy reveal-item">
+          <span class="section-eyebrow">The Valthr Proposal</span>
+          <h3 class="about-split-title">A fleet of twenty drones, one intelligent dispatcher.</h3>
+          <p>
+            Valthr deploys <strong>20 electric drones</strong> across distributed micro-bases on the refinery footprint,
+            coordinated by a central operations hub. An AI-driven dispatcher allocates every task in real time based on
+            priority, payload, battery state and proximity, so the right drone is always already en route.
+          </p>
+          <p>
+            The system is built for hazardous industrial environments. Intrinsically safe components, geofenced corridors,
+            redundant communications and automated fail-safe protocols keep the fleet predictable even when the site isn't.
+          </p>
+        </div>
+      </div>
+
+      <!-- ── Payload classes ── -->
+      <div class="about-payloads">
+        <div class="about-payloads-header">
+          <span class="section-eyebrow reveal-item">What Drones Carry</span>
+          <h3 class="about-payloads-title reveal-item">Two payload classes, one network.</h3>
+        </div>
+        <div class="about-payload-grid about-payload-grid-2 reveal-group">
+
+          <article class="about-payload-card reveal-item">
+            <div class="about-payload-media">
+              <img src="assets/images/oil-sample-lab.png" alt="Lab technician preparing oil sample vials for analysis" loading="lazy">
+            </div>
+            <div class="about-payload-body">
+              <span class="about-payload-tag">01 / Lab Samples</span>
+              <h4>On-demand sample transport</h4>
+              <p>Time-critical oil, water and product samples flown straight from the process units to the central lab, cutting turnaround from hours to minutes.</p>
+            </div>
+          </article>
+
+          <article class="about-payload-card reveal-item">
+            <div class="about-payload-media">
+              <img src="assets/images/delivery-box-on-table.png" alt="Hardened delivery case containing spare parts, tools and emergency safety equipment" loading="lazy">
+            </div>
+            <div class="about-payload-body">
+              <span class="about-payload-tag">02 / Tools, Spares &amp; Safety Kit</span>
+              <h4>Small parts, delivered where they're needed</h4>
+              <p>Spare parts, specialist tools and emergency safety equipment routed on demand to any work site, so crews stop waiting and keep working.</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <!-- ── Impact strip ── -->
+      <div class="about-impact-row reveal-group">
+        <div class="about-impact-item reveal-item">
+          <span class="about-impact-num">01</span>
+          <h5>Worker Safety</h5>
+          <p>Fewer human trips through hot, pressurised and classified hazardous zones.</p>
+        </div>
+        <div class="about-impact-item reveal-item">
+          <span class="about-impact-num">02</span>
+          <h5>Operational Speed</h5>
+          <p>Aerial routes bypass ground congestion; deliveries land in minutes, not hours.</p>
+        </div>
+        <div class="about-impact-item reveal-item">
+          <span class="about-impact-num">03</span>
+          <h5>Digital Transformation</h5>
+          <p>A programmable logistics layer that BAPCO's operations can build on top of.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SIMULATION
+  ════════════════════════════════════════════════════════════════════════ -->
+  <section id="simulation" aria-label="Fleet optimization simulation">
+
+    <!-- Section header (consistent max-width with other sections) -->
+    <div id="sim-header">
+      <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
+        <div>
+          <span class="section-eyebrow" style="margin-bottom:0.2rem">Fleet Intelligence</span>
+          <h2 class="font-syne font-bold text-2xl" style="color:var(--text-primary)">Live Delivery Simulation</h2>
+        </div>
+        <button id="sim-tour-btn" aria-label="Take a tour of the simulation">
+          <i data-lucide="compass"></i>
+          Simulation Tour
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading placeholder -->
+    <div id="sim-placeholder">
+      <div style="text-align:center">
+        <p style="margin-bottom:1rem;letter-spacing:0.2em;font-family:var(--font-mono);font-size:0.85rem;color:var(--text-muted)">INITIALISING FLEET INTELLIGENCE</p>
+        <div class="sim-loading-bar"></div>
+        <p style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-subtle);font-family:var(--font-mono)">Scroll down to activate · Lazy-loaded for performance</p>
+      </div>
+    </div>
+
+    <!-- Simulation container (revealed on lazy init) -->
+    <div id="sim-container" style="display:none">
+
+      <!-- Side-by-side: map left, panel right -->
+      <div id="sim-layout">
+
+        <!-- Map area (full width) with floating overlay card -->
+        <div id="map-wrapper">
+          <div id="leaflet-map" role="application" aria-label="Delivery network map — Bapco Refinery, Bahrain"></div>
+          <div id="sim-toast" aria-live="polite" aria-atomic="true"></div>
+
+        <!-- Floating panel card (overlaid on right side of map) -->
+        <div id="sim-side-panel">
+
+          <!-- ── Add Delivery form ── -->
+          <div class="sim-section-label">Add Delivery</div>
+
+          <div class="sim-form-group">
+            <label class="sim-form-label" for="sim-from-select">From</label>
+            <select id="sim-from-select" class="sim-select" aria-label="Dispatch point">
+              <option value="">Dispatch point…</option>
+            </select>
+          </div>
+
+          <div class="sim-form-group">
+            <label class="sim-form-label" for="sim-to-select">To</label>
+            <select id="sim-to-select" class="sim-select" aria-label="Destination">
+              <option value="">Destination…</option>
+            </select>
+          </div>
+
+          <div class="sim-form-row-inline">
+            <span class="sim-form-label" style="margin:0">Priority</span>
+            <div class="sim-priority-toggle">
+              <span class="sim-toggle-lo">Low</span>
+              <label class="sim-switch" aria-label="Toggle priority High/Low">
+                <input type="checkbox" id="sim-priority-switch">
+                <span class="sim-switch-track"></span>
+              </label>
+              <span class="sim-toggle-hi">High</span>
+            </div>
+          </div>
+
+          <button id="sim-add-delivery" class="sim-btn-add" aria-label="Add delivery to queue">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden="true"><path d="M4.5 0h2v4.5H11v2H6.5V11h-2V6.5H0v-2h4.5V0z"/></svg>
+            Add Delivery
+          </button>
+
+          <div class="sim-divider"></div>
+
+          <!-- ── Queue ── -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;flex-shrink:0">
+            <div class="sim-section-label" style="margin:0">Delivery Queue</div>
+            <span id="queue-count" class="sim-queue-badge"></span>
+          </div>
+          <ul id="queue-list" aria-live="polite"></ul>
+
+          <!-- Controls: Randomize + Clear on row 1, Run on row 2 -->
+          <div class="sim-controls-grid" id="sim-controls-row-anchor">
+            <button id="sim-randomize" class="sim-btn-secondary" aria-label="Add 5 random deliveries">
+              <i data-lucide="shuffle" style="width:14px;height:14px"></i>
+              Randomize
+            </button>
+            <button id="sim-clear-queue" class="sim-btn-secondary" aria-label="Clear delivery queue">
+              <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+              Clear
+            </button>
+            <button id="sim-run" class="sim-btn-primary" aria-label="Run simulation">
+              Run <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden="true" style="margin-left:4px"><path d="M2 1.5l7 4-7 4z"/></svg>
+            </button>
+          </div>
+
+          <!-- ── Playback slider ── -->
+          <div id="sim-playback" style="display:none">
+            <div class="sim-section-label" style="margin-bottom:6px">Playback</div>
+            <input type="range" id="sim-playback-slider" class="sim-slider" min="0" max="100" value="0" step="1" aria-label="Scrub simulation playback">
+          </div>
+
+        </div><!-- /sim-side-panel -->
+        </div><!-- /map-wrapper -->
+      </div><!-- /sim-layout -->
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       CHATBOT
+  ════════════════════════════════════════════════════════════════════════ -->
+  <section id="chatbot" class="bg-surface py-20 px-0" aria-label="AI research assistant">
+    <div class="max-w-7xl mx-auto px-6 mb-12 text-center">
+      <span class="section-eyebrow">AI Research Assistant</span>
+      <h2 class="section-title text-[clamp(1.8rem,3.5vw,2.8rem)] mb-4">
+        Ask the Report
+      </h2>
+      <p class="section-subtitle mx-auto text-center">
+        Powered by Gemini 2.0 Flash, grounded exclusively in the Valthr research report.
+      </p>
+      <button id="chat-tour-btn" aria-label="Take a tour of the research assistant">
+        <i data-lucide="compass"></i>
+        Chat Tour
+      </button>
+    </div>
+
+    <!-- Loading placeholder -->
+    <div id="chat-placeholder">
+      <span style="letter-spacing:0.15em;font-family:var(--font-mono);font-size:0.8rem;color:var(--text-muted)">LOADING RESEARCH INTERFACE</span>
+    </div>
+
+    <!-- Chat container (revealed on lazy init) -->
+    <div id="chat-container" style="display:none" role="main">
+
+      <!-- Chat interface — boxed so users recognise it as a chat -->
+      <div id="chat-box">
+      <div id="chat-interface" role="region" aria-label="Chat interface">
+
+        <!-- Context banner + actions -->
+        <div class="chat-context-banner">
+          <span class="chat-context-label">Grounded in</span>
+          <span class="chat-context-text">Valthr Research Report — Drone Delivery at BAPCO &middot; 2024</span>
+          <div class="chat-actions">
+            <button class="chat-action-btn" id="chat-clear" aria-label="Clear chat history">Clear</button>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="chat-messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
+
+        <!-- Typing indicator -->
+        <div id="typing-indicator" role="status" aria-label="Assistant is typing">
+          <span class="typing-dot" aria-hidden="true"></span>
+          <span class="typing-dot" aria-hidden="true"></span>
+          <span class="typing-dot" aria-hidden="true"></span>
+        </div>
+
+        <!-- Input form -->
+        <form id="chat-form" aria-label="Send a message">
+          <textarea
+            id="chat-input"
+            rows="1"
+            placeholder="Ask about the routing algorithm, cost analysis, BAPCO network..."
+            aria-label="Message input"
+            spellcheck="true"
+          ></textarea>
+          <button type="submit" id="chat-submit" aria-label="Send message">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
+              <path d="M1 1l16 8-16 8V11l12-2-12-2V1z"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Disclaimer -->
+        <p class="chat-disclaimer" role="note">
+          Answers are based solely on the Valthr research report &nbsp;·&nbsp; Gemini 2.0 Flash &nbsp;·&nbsp; temperature 0.2
+        </p>
+
+      </div><!-- /chat-interface -->
+      </div><!-- /chat-box -->
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       FEATURES
+  ════════════════════════════════════════════════════════════════════════ -->
+  <section id="features" class="bg-void py-28 px-6" aria-label="Features and tools">
+    <div class="max-w-7xl mx-auto">
+
+      <div class="mb-12">
+        <span class="section-eyebrow reveal-item">Tools</span>
+        <h2 class="section-title text-[clamp(1.8rem,3.5vw,2.8rem)] mb-4 reveal-item">Feature Modules</h2>
+        <p class="section-subtitle reveal-item">
+          Standalone interactive tools that extend the Valthr platform. Each module is self-contained and can be used independently.
+        </p>
+      </div>
+
+      <div id="features-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <div class="feature-slot reveal-item" data-src="features/savings-calculator.html" data-title="Savings Calculator">
+          <div class="feature-slot-placeholder">
+            <div class="placeholder-icon"><i data-lucide="calculator"></i></div>
+            <h4>Savings Calculator</h4>
+            <p>
+              Enter your annual drone flights and see projected savings in cost, time, and CO₂ emissions compared to ground delivery.
+            </p>
+            <span class="font-mono text-subtle text-[0.75rem] tracking-widest uppercase mt-2">Coming Soon</span>
+          </div>
+        </div>
+
+        <div class="feature-slot reveal-item" data-src="features/route-analyser.html" data-title="Route Analyser">
+          <div class="feature-slot-placeholder">
+            <div class="placeholder-icon"><i data-lucide="map"></i></div>
+            <h4>Route Analyser</h4>
+            <p>
+              Analyse and compare route efficiency across different delivery scenarios on the BAPCO network.
+            </p>
+            <span class="font-mono text-subtle text-[0.75rem] tracking-widest uppercase mt-2">Coming Soon</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       TEAM
+  ════════════════════════════════════════════════════════════════════════ -->
+  <section id="team" class="bg-void py-28 px-6" aria-label="Meet the team">
+    <div class="max-w-7xl mx-auto">
+
+      <div class="mb-14">
+        <span class="section-eyebrow reveal-item">The Team</span>
+        <h2 class="section-title text-[clamp(1.8rem,3.5vw,2.8rem)] mb-4 reveal-item">
+          Meet the People Behind Valthr
+        </h2>
+        <p class="section-subtitle reveal-item">
+          Group 01 — MSIN0068 Project Management, UCL School of Management.
+        </p>
+      </div>
+
+      <div class="team-grid reveal-group">
+
+        <div class="team-card reveal-item">
+          <div class="team-avatar">VB</div>
+          <h4>Victor Brinzan</h4>
+          <p class="team-role">Engineer</p>
+          <p class="team-bio">Oversaw project planning, stakeholder communication, and delivery timelines across all workstreams. Very Romanian.</p>
+        </div>
+
+        <div class="team-card reveal-item">
+          <div class="team-avatar">RT</div>
+          <h4>Rustam Toshov</h4>
+          <p class="team-role">Engineer</p>
+          <p class="team-bio">Designed and implemented the Floyd-Warshall routing engine and greedy drone assignment heuristic.</p>
+        </div>
+
+        <div class="team-card reveal-item">
+          <div class="team-avatar">HV</div>
+          <h4>Hugo Valade</h4>
+          <p class="team-role">Engineer</p>
+          <p class="team-bio">Ported the MATLAB prototype to JavaScript and built the real-time Leaflet map playback system.</p>
+        </div>
+
+        <div class="team-card reveal-item">
+          <div class="team-avatar">LD</div>
+          <h4>Lea Dabboussi</h4>
+          <p class="team-role">Engineer</p>
+          <p class="team-bio">Conducted network topology analysis, defined station coordinates, and modelled delivery scenarios.</p>
+        </div>
+
+        <div class="team-card reveal-item">
+          <div class="team-avatar">TK</div>
+          <h4>Taro Kuroda</h4>
+          <p class="team-role">Engineer</p>
+          <p class="team-bio">Led user interface design, built the interactive website, and integrated the AI research assistant.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════════════════════════ -->
+  <footer class="py-14 px-6" role="contentinfo">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-10">
+
+      <div>
+        <a href="#hero" style="text-decoration:none;display:inline-block">
+          <img src="assets/images/logo-mark.png" alt="Valthr" class="footer-logo">
+        </a>
+        <p class="footer-tagline">Autonomous drone delivery for industrial logistics.</p>
+      </div>
+
+      <div class="footer-meta">
+        <p>BAPCO Industrial Complex &nbsp;·&nbsp; Bahrain</p>
+        <p>26.11°N &nbsp; 50.61°E</p>
+        <p style="margin-top:0.5rem">9 Stations &nbsp;·&nbsp; 17 Routes &nbsp;·&nbsp; 3-Drone Fleet</p>
+        <p>Floyd-Warshall &nbsp;+&nbsp; Greedy Assignment</p>
+      </div>
+
+      <div class="footer-meta">
+        <p>Built with Leaflet.js + Gemini 2.0 Flash</p>
+        <p>GitHub Pages &nbsp;·&nbsp; Static Site</p>
+        <p style="margin-top:0.5rem">Group 01 — Valthr</p>
+        <p>MSIN0068 Project Management</p>
+      </div>
+
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       SCRIPTS (load order is critical)
+  ════════════════════════════════════════════════════════════════════════ -->
+  <script src="assets/js/shared.js"></script>
+  <script src="assets/js/simulation.js"></script>
+  <script src="assets/js/map.js"></script>
+  <script src="assets/js/chatbot.js"></script>
+  <script src="assets/js/features.js"></script>
+
+  <script>
+    // ── Lucide icons ──────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.lucide) lucide.createIcons();
+    });
+
+    // ── Guided tours ──────────────────────────────────────────────────────────
+    (function () {
+      const TOUR_KEY = 'valthr-tour-done';
+
+      const TOUR_OPTIONS = {
+        showBullets: true,
+        showProgress: false,
+        exitOnOverlayClick: true,
+        scrollToElement: true,
+        overlayOpacity: 0.5,
+        tooltipClass: 'valthr-tour-tooltip',
+        nextLabel: 'Next &rarr;',
+        prevLabel: '&larr; Back',
+        doneLabel: 'Done'
+      };
+
+      // Steps for the simulation section
+      function simSteps() {
+        return [
+          {
+            element: document.getElementById('leaflet-map'),
+            intro: 'This is the <b>Bapco Refinery</b> network in Bahrain — 9 stations connected by 17 routes. Click any two stations to queue a delivery.',
+            position: 'right'
+          },
+          {
+            element: document.getElementById('queue-list'),
+            intro: 'Your delivery queue appears here. Click two stations on the map, or hit <b>Randomize</b> to load a sample set. Drag items to reorder, toggle <b>H/L</b> to switch priority, or press <b>×</b> to remove.',
+            position: 'left'
+          },
+          {
+            element: document.getElementById('sim-controls-row-anchor'),
+            intro: 'Use <b>Randomize</b> or <b>Clear</b> to manage the queue, then press <b>Run</b> to execute the simulation. After it finishes, hit <b>Replay</b> to run again.',
+            position: 'top'
+          }
+        ];
+      }
+
+      // Steps for the chat section
+      function chatSteps() {
+        return [
+          {
+            element: document.getElementById('chat-box'),
+            intro: 'The <b>AI Research Assistant</b> is grounded exclusively in the Valthr research report — ask it anything about the project.',
+            position: 'top'
+          },
+          {
+            element: document.getElementById('chat-form'),
+            intro: 'Type a question and press Enter. The assistant answers only from the research report.',
+            position: 'top'
+          }
+        ];
+      }
+
+      function _runTour(steps, onDone) {
+        if (!window.introJs || !steps.length) return;
+        const tour = introJs().setOptions(Object.assign({}, TOUR_OPTIONS, { steps }));
+        if (onDone) { tour.oncomplete(onDone); tour.onexit(onDone); }
+        tour.start();
+      }
+
+      function startSimTour() {
+        const simEl = document.getElementById('simulation');
+        if (simEl) simEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(function () { _runTour(simSteps()); }, 800);
+      }
+
+      function startChatTour() {
+        const chatEl = document.getElementById('chatbot');
+        if (chatEl) chatEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(function () { _runTour(chatSteps()); }, 500);
+      }
+
+      function startFullTour() {
+        const simEl = document.getElementById('simulation');
+        if (simEl) simEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(function () {
+          _runTour(simSteps().concat(chatSteps()), function () {
+            localStorage.setItem(TOUR_KEY, '1');
+          });
+        }, 1800);
+      }
+
+      // Auto-start full tour on first visit (waits for sim to load)
+      if (!localStorage.getItem(TOUR_KEY)) {
+        const simSection = document.getElementById('simulation');
+        if (simSection && 'IntersectionObserver' in window) {
+          const obs = new IntersectionObserver(function (entries) {
+            if (entries[0].isIntersecting) {
+              obs.disconnect();
+              startFullTour();
+            }
+          }, { threshold: 0.2 });
+          obs.observe(simSection);
+        }
+      }
+
+      // Wire tour buttons
+      document.addEventListener('DOMContentLoaded', function () {
+        const simBtn  = document.getElementById('sim-tour-btn');
+        const chatBtn = document.getElementById('chat-tour-btn');
+        if (simBtn)  simBtn.addEventListener('click', startSimTour);
+        if (chatBtn) chatBtn.addEventListener('click', startChatTour);
+      });
+
+      // Expose for manual trigger
+      window.startValthrSimTour  = startSimTour;
+      window.startValthrChatTour = startChatTour;
+      window.startValthrTour     = startFullTour;
+    })();
+  </script>
+
+</body>
+</html>
