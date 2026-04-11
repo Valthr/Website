@@ -59,8 +59,8 @@ window.ValthrMap = (function () {
         const stationLatLngs = window.NETWORK.stations.map(s => [s.lat, s.lon]);
         const bounds = L.latLngBounds(stationLatLngs);
         map.fitBounds(bounds, {
-          paddingTopLeft:     [40, 40],
-          paddingBottomRight: [360, 60],
+          paddingTopLeft:     [30, 30],
+          paddingBottomRight: [320, 40],
           animate: false
         });
 
@@ -148,35 +148,8 @@ window.ValthrMap = (function () {
         { permanent: true, direction: 'top', className: 'station-label', offset: [0, -4] }
       );
 
-      // Clicking a station pre-fills the From dropdown
-      marker.on('click', () => handleNodeClick(i));
       return marker;
     });
-  }
-
-  function handleNodeClick(nodeIdx) {
-    if (isPlaying) return;
-    const fromSel = document.getElementById('sim-from-select');
-    const toSel   = document.getElementById('sim-to-select');
-    if (!fromSel || !toSel) return;
-
-    // If From is empty or already set to a different station, fill From first
-    if (fromSel.value === '' || fromSel.value === String(nodeIdx)) {
-      fromSel.value = String(nodeIdx);
-      // Highlight selected node
-      nodeMarkers.forEach((m, i) =>
-        m.setStyle(i === nodeIdx
-          ? { fillColor: '#0284c7', color: '#fff', weight: 3 }
-          : { fillColor: '#d97706', color: '#fff', weight: 2.5 }
-        )
-      );
-      updateHint('Dispatch selected — now pick a destination or use the dropdown');
-    } else {
-      // From already set — fill To
-      toSel.value = String(nodeIdx);
-      nodeMarkers.forEach(m => m.setStyle({ fillColor: '#d97706', color: '#fff', weight: 2.5 }));
-      updateHint('Both points selected — press Add Delivery or adjust priority');
-    }
   }
 
   function updateHint(text) {
@@ -248,7 +221,7 @@ window.ValthrMap = (function () {
         queueDirty = true;
         showQueuePreview();
         setRunButton('run');
-        if (userQueue.length === 0) updateHint('Queue cleared — click two stations to add a delivery');
+        if (userQueue.length === 0) updateHint('Queue cleared. Use the form above to add a delivery.');
       });
     });
   }

@@ -351,38 +351,40 @@
         <div id="sim-side-panel">
 
           <!-- ── Add Delivery form ── -->
-          <div class="sim-section-label">Add Delivery</div>
+          <div id="sim-add-delivery-form">
+            <div class="sim-section-label">Add Delivery</div>
 
-          <div class="sim-form-group">
-            <label class="sim-form-label" for="sim-from-select">From</label>
-            <select id="sim-from-select" class="sim-select" aria-label="Dispatch point">
-              <option value="">Dispatch point…</option>
-            </select>
-          </div>
-
-          <div class="sim-form-group">
-            <label class="sim-form-label" for="sim-to-select">To</label>
-            <select id="sim-to-select" class="sim-select" aria-label="Destination">
-              <option value="">Destination…</option>
-            </select>
-          </div>
-
-          <div class="sim-form-row-inline">
-            <span class="sim-form-label" style="margin:0">Priority</span>
-            <div class="sim-priority-toggle">
-              <span class="sim-toggle-lo">Low</span>
-              <label class="sim-switch" aria-label="Toggle priority High/Low">
-                <input type="checkbox" id="sim-priority-switch">
-                <span class="sim-switch-track"></span>
-              </label>
-              <span class="sim-toggle-hi">High</span>
+            <div class="sim-form-group">
+              <label class="sim-form-label" for="sim-from-select">From</label>
+              <select id="sim-from-select" class="sim-select" aria-label="Dispatch point">
+                <option value="">Dispatch point…</option>
+              </select>
             </div>
-          </div>
 
-          <button id="sim-add-delivery" class="sim-btn-add" aria-label="Add delivery to queue">
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden="true"><path d="M4.5 0h2v4.5H11v2H6.5V11h-2V6.5H0v-2h4.5V0z"/></svg>
-            Add Delivery
-          </button>
+            <div class="sim-form-group">
+              <label class="sim-form-label" for="sim-to-select">To</label>
+              <select id="sim-to-select" class="sim-select" aria-label="Destination">
+                <option value="">Destination…</option>
+              </select>
+            </div>
+
+            <div class="sim-form-row-inline">
+              <span class="sim-form-label" style="margin:0">Priority</span>
+              <div class="sim-priority-toggle">
+                <span class="sim-toggle-lo">Low</span>
+                <label class="sim-switch" aria-label="Toggle priority High/Low">
+                  <input type="checkbox" id="sim-priority-switch">
+                  <span class="sim-switch-track"></span>
+                </label>
+                <span class="sim-toggle-hi">High</span>
+              </div>
+            </div>
+
+            <button id="sim-add-delivery" class="sim-btn-add" aria-label="Add delivery to queue">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden="true"><path d="M4.5 0h2v4.5H11v2H6.5V11h-2V6.5H0v-2h4.5V0z"/></svg>
+              Add Delivery
+            </button>
+          </div>
 
           <div class="sim-divider"></div>
 
@@ -457,7 +459,7 @@
           <span class="chat-context-label">Grounded in</span>
           <span class="chat-context-text">Valthr Research Report — Drone Delivery at BAPCO &middot; 2024</span>
           <div class="chat-actions">
-            <button class="chat-action-btn" id="chat-clear" aria-label="Clear chat history">Clear</button>
+            <button class="chat-action-btn" id="chat-clear" aria-label="Reset chat history">Reset Chat</button>
           </div>
         </div>
 
@@ -469,6 +471,16 @@
           <span class="typing-dot" aria-hidden="true"></span>
           <span class="typing-dot" aria-hidden="true"></span>
           <span class="typing-dot" aria-hidden="true"></span>
+        </div>
+
+        <!-- Example questions -->
+        <div id="chat-suggestions" aria-label="Example questions">
+          <span class="chat-suggestions-label">Try asking</span>
+          <div class="chat-suggestions-list">
+            <button type="button" class="chat-suggestion-chip" data-prompt="Will the delivery route plans be sent to the drones via Wi-Fi mesh or LTE/5G?">Will the delivery route plans be sent to the drones via Wi-Fi mesh or LTE/5G?</button>
+            <button type="button" class="chat-suggestion-chip" data-prompt="Is Agile-Scrum the most appropriate project management methodology for this proposal?">Is Agile-Scrum the most appropriate project management methodology for this proposal?</button>
+            <button type="button" class="chat-suggestion-chip" data-prompt="What is the estimated CAPEX for operations and maintenance?">What is the estimated CAPEX for operations and maintenance?</button>
+          </div>
         </div>
 
         <!-- Input form -->
@@ -657,8 +669,8 @@
         scrollToElement: true,
         overlayOpacity: 0.5,
         tooltipClass: 'valthr-tour-tooltip',
-        nextLabel: 'Next &rarr;',
-        prevLabel: '&larr; Back',
+        nextLabel: 'Next \u2192',
+        prevLabel: '\u2190 Back',
         doneLabel: 'Done'
       };
 
@@ -667,17 +679,32 @@
         return [
           {
             element: document.getElementById('leaflet-map'),
-            intro: 'This is the <b>Bapco Refinery</b> network in Bahrain — 9 stations connected by 17 routes. Click any two stations to queue a delivery.',
+            intro: 'Welcome to the <b>BAPCO network</b>. 9 stations across the refinery connected by 17 routes.',
             position: 'right'
           },
           {
-            element: document.getElementById('queue-list'),
-            intro: 'Your delivery queue appears here. Click two stations on the map, or hit <b>Randomize</b> to load a sample set. Drag items to reorder, toggle <b>H/L</b> to switch priority, or press <b>×</b> to remove.',
+            element: document.getElementById('leaflet-map'),
+            intro: 'See the 3 coloured drones on the map? Each one has a starting station. <b>Drag any drone</b> to a different station to change where it launches from when you hit Run.',
+            position: 'right'
+          },
+          {
+            element: document.getElementById('sim-add-delivery-form'),
+            intro: 'Use the floating card to build your queue. Pick a <b>From</b> and <b>To</b> station, toggle the <b>Priority</b> switch (High jumps the queue), then press <b>Add Delivery</b>.',
             position: 'left'
           },
           {
-            element: document.getElementById('sim-controls-row-anchor'),
-            intro: 'Use <b>Randomize</b> or <b>Clear</b> to manage the queue, then press <b>Run</b> to execute the simulation. After it finishes, hit <b>Replay</b> to run again.',
+            element: document.getElementById('queue-list'),
+            intro: 'Your <b>delivery queue</b>. <b>Drag</b> the ⠿ handle to reorder items, click <b>H/L</b> to flip priority, or press <b>×</b> to remove a delivery. High-priority jobs are dispatched first.',
+            position: 'left'
+          },
+          {
+            element: document.getElementById('sim-randomize'),
+            intro: 'No time to build a queue? <b>Randomize</b> instantly loads 5 sample deliveries. <b>Clear</b> empties the queue to start over.',
+            position: 'top'
+          },
+          {
+            element: document.getElementById('sim-run'),
+            intro: 'Hit <b>Run</b> to execute the simulation — drones animate along their optimised routes (Floyd–Warshall + greedy assignment). When it finishes, this button becomes <b>Replay</b> and a <b>playback slider</b> appears below so you can scrub through the animation.',
             position: 'top'
           }
         ];

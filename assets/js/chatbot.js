@@ -6,7 +6,7 @@ window.ValthrChat = (function () {
   // ── API configuration ──────────────────────────────────────────────────────
   // TODO: Replace with your Gemini API key before deploying
   const VALTHR_GEMINI_KEY = 'AIzaSyD0BtkfnvJFsmc25UJwCIVrC-XfiPetq2g';
-  const GEMINI_MODEL = 'gemini-2.0-flash';
+  const GEMINI_MODEL = 'gemini-2.0-flash-lite';
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${VALTHR_GEMINI_KEY}`;
 
   let history = []; // [{role: 'user'|'model', parts: [{text}]}]
@@ -85,12 +85,25 @@ ${ctx}`;
         history = [];
         const msgs = document.getElementById('chat-messages');
         if (msgs) msgs.innerHTML = '';
+        const sug = document.getElementById('chat-suggestions');
+        if (sug) sug.classList.remove('is-hidden');
         showChatInterface();
       });
     }
+
+    document.querySelectorAll('.chat-suggestion-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (isTyping) return;
+        const text = chip.dataset.prompt || chip.textContent.trim();
+        sendMessage(text);
+      });
+    });
   }
 
   async function sendMessage(userText) {
+    const sug = document.getElementById('chat-suggestions');
+    if (sug) sug.classList.add('is-hidden');
+
     appendMessage('user', userText);
     history.push({ role: 'user', parts: [{ text: userText }] });
 

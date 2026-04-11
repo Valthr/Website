@@ -182,11 +182,11 @@ a:hover { text-decoration: underline; }
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(rgba(255,255,255,0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.09) 1px, transparent 1px);
+  background-size: 256px 256px;
   pointer-events: none;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 50%, black 40%, transparent 100%);
 }
 
 /* Hero text overrides — light text on dark video */
@@ -234,26 +234,74 @@ a:hover { text-decoration: underline; }
 /* ─── Scroll cue ─────────────────────────────────────────────────────────────── */
 #scroll-cue {
   position: absolute;
-  bottom: 2rem;
+  bottom: 2.25rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 0.7rem;
-  letter-spacing: 0.15em;
+  gap: 12px;
+  color: #ffffff;
+  font-size: 0.74rem;
+  letter-spacing: 0.28em;
   font-family: var(--font-mono);
+  font-weight: 600;
   text-transform: uppercase;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+  z-index: 5;
 }
 
+/* Soft pulsing halo behind the mouse icon */
+#scroll-cue::before {
+  content: '';
+  width: 28px;
+  height: 44px;
+  border: 2px solid #ffffff;
+  border-radius: 14px;
+  position: relative;
+  box-shadow:
+    0 0 0 0 rgba(245, 166, 35, 0.55),
+    0 0 28px rgba(245, 166, 35, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 0 10px rgba(245, 166, 35, 0.2);
+  background: radial-gradient(
+    ellipse 9px 5px at 50% 12px,
+    #f5a623 0%,
+    #f5a623 45%,
+    transparent 65%
+  );
+  background-repeat: no-repeat;
+  animation: scroll-wheel 1.6s ease-in-out infinite, scroll-halo 2.2s ease-out infinite;
+}
+
+/* Chevron under the mouse */
 #scroll-cue::after {
   content: '';
-  width: 1px;
-  height: 32px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
-  display: block;
+  width: 12px;
+  height: 12px;
+  border-right: 2.5px solid #ffffff;
+  border-bottom: 2.5px solid #ffffff;
+  transform: rotate(45deg);
+  margin-top: -2px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  animation: scroll-chevron 1.6s ease-in-out infinite;
+}
+
+@keyframes scroll-wheel {
+  0%   { background-position: 50% 0px;  }
+  50%  { background-position: 50% 10px; }
+  100% { background-position: 50% 0px;  }
+}
+
+@keyframes scroll-chevron {
+  0%, 100% { opacity: 0.5; transform: rotate(45deg) translate(-4px, -4px); }
+  50%      { opacity: 1;   transform: rotate(45deg) translate(3px, 3px);  }
+}
+
+@keyframes scroll-halo {
+  0%   { box-shadow: 0 0 0 0  rgba(245, 166, 35, 0.55), 0 0 28px rgba(245, 166, 35, 0.55), 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(245, 166, 35, 0.2); }
+  70%  { box-shadow: 0 0 0 16px rgba(245, 166, 35, 0),   0 0 36px rgba(245, 166, 35, 0.35), 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(245, 166, 35, 0.2); }
+  100% { box-shadow: 0 0 0 0  rgba(245, 166, 35, 0),     0 0 28px rgba(245, 166, 35, 0.55), 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(245, 166, 35, 0.2); }
 }
 
 /* ─── CTA buttons ─────────────────────────────────────────────────────────────── */
@@ -1293,6 +1341,54 @@ a:hover { text-decoration: underline; }
 
 .typing-dot:nth-child(2) { animation-delay: 0.15s; }
 .typing-dot:nth-child(3) { animation-delay: 0.30s; }
+
+/* Suggestion chips */
+#chat-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0.75rem;
+  flex-shrink: 0;
+}
+
+#chat-suggestions.is-hidden { display: none; }
+
+.chat-suggestions-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.chat-suggestions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.chat-suggestion-chip {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-dim);
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+}
+
+.chat-suggestion-chip:hover {
+  background: #fff;
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-1px);
+}
+
+.chat-suggestion-chip:active { transform: translateY(0); }
 
 @keyframes typing-bounce {
   0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
