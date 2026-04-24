@@ -1,0 +1,586 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     Valthr · Savings Calculator
+     Feature module, loads into #features slot at features/savings-calculator.html
+     Self contained: styles, markup and script. Works via fetch into innerHTML
+     or iframe. No external dependencies beyond Google Fonts.
+     ════════════════════════════════════════════════════════════════════ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  .svc-root {
+    --svc-accent: #d97706;
+    --svc-accent-light: #fef3c7;
+    --svc-panel: #ffffff;
+    --svc-surface-soft: #f8f7f4;
+    --svc-dim: #eae9e5;
+    --svc-bright: #ccc9c0;
+    --svc-text: #111111;
+    --svc-muted: #6b7280;
+    --svc-subtle: #9ca3af;
+    --svc-font-heading: 'Syne', system-ui, sans-serif;
+    --svc-font-body: 'Space Grotesk', system-ui, sans-serif;
+    --svc-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    font-family: var(--svc-font-body);
+    color: var(--svc-text);
+    display: block;
+    padding: 2rem;
+    border-radius: 14px;
+    background: var(--svc-panel);
+    border: 1px solid var(--svc-dim);
+    line-height: 1.5;
+  }
+
+  .svc-root *,
+  .svc-root *::before,
+  .svc-root *::after { box-sizing: border-box; }
+
+  .svc-header { margin-bottom: 1.5rem; }
+
+  .svc-eyebrow {
+    font-family: var(--svc-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--svc-accent);
+    margin-bottom: 0.45rem;
+    display: block;
+  }
+
+  .svc-title {
+    font-family: var(--svc-font-heading);
+    font-weight: 700;
+    font-size: 1.55rem;
+    line-height: 1.2;
+    margin: 0 0 0.55rem 0;
+    color: var(--svc-text);
+    letter-spacing: -0.01em;
+  }
+
+  .svc-sub {
+    font-size: 0.95rem;
+    color: var(--svc-muted);
+    margin: 0;
+    max-width: 58ch;
+  }
+
+  .svc-input-block {
+    padding: 1.5rem;
+    background: var(--svc-surface-soft);
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--svc-dim);
+  }
+
+  .svc-input-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.9rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .svc-input-label {
+    font-family: var(--svc-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--svc-muted);
+  }
+
+  .svc-input-value {
+    font-family: var(--svc-font-mono);
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--svc-text);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.15s ease;
+  }
+
+  .svc-input-value.flash { color: var(--svc-accent); }
+
+  .svc-unit {
+    font-size: 0.75rem;
+    color: var(--svc-muted);
+    margin-left: 0.35rem;
+    letter-spacing: 0.05em;
+  }
+
+  .svc-slider {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 4px;
+    background: linear-gradient(to right, var(--svc-accent) 0%, var(--svc-accent) 0%, var(--svc-dim) 0%, var(--svc-dim) 100%);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  .svc-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--svc-accent);
+    border-radius: 50%;
+    cursor: grab;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .svc-slider::-webkit-slider-thumb:hover { transform: scale(1.12); }
+  .svc-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.18); }
+
+  .svc-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--svc-accent);
+    border-radius: 50%;
+    cursor: grab;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+  }
+
+  .svc-presets {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .svc-preset {
+    padding: 0.4rem 0.75rem;
+    background: #fff;
+    border: 1px solid var(--svc-dim);
+    border-radius: 6px;
+    font-family: var(--svc-font-mono);
+    font-size: 0.72rem;
+    color: var(--svc-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    letter-spacing: 0.02em;
+  }
+
+  .svc-preset:hover {
+    border-color: var(--svc-accent);
+    color: var(--svc-text);
+  }
+
+  .svc-preset.active {
+    background: var(--svc-accent);
+    color: #fff;
+    border-color: var(--svc-accent);
+  }
+
+  .svc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.9rem;
+  }
+
+  .svc-tile {
+    padding: 1.25rem;
+    background: #fff;
+    border: 1px solid var(--svc-dim);
+    border-radius: 10px;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+  }
+
+  .svc-tile:hover {
+    border-color: var(--svc-bright);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+  }
+
+  .svc-tile-icon {
+    width: 26px;
+    height: 26px;
+    color: var(--svc-accent);
+    margin-bottom: 0.85rem;
+    stroke-width: 1.75;
+  }
+
+  .svc-tile-label {
+    font-family: var(--svc-font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--svc-muted);
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+
+  .svc-tile-value-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .svc-tile-value {
+    font-family: var(--svc-font-heading);
+    font-weight: 700;
+    font-size: 1.85rem;
+    line-height: 1;
+    color: var(--svc-text);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.15s ease;
+    letter-spacing: -0.01em;
+  }
+
+  .svc-tile-value.flash { color: var(--svc-accent); }
+
+  .svc-tile-unit {
+    font-family: var(--svc-font-mono);
+    font-size: 0.78rem;
+    color: var(--svc-muted);
+    font-weight: 400;
+  }
+
+  .svc-tile-caption {
+    font-size: 0.82rem;
+    color: var(--svc-muted);
+    margin: 0.6rem 0 0 0;
+    line-height: 1.45;
+  }
+
+  .svc-assumptions {
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--svc-dim);
+    padding-top: 1.1rem;
+  }
+
+  .svc-assumptions summary {
+    cursor: pointer;
+    font-family: var(--svc-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--svc-muted);
+    user-select: none;
+    padding: 0.25rem 0;
+    list-style: none;
+    transition: color 0.15s ease;
+  }
+
+  .svc-assumptions summary:hover { color: var(--svc-text); }
+
+  .svc-assumptions summary::-webkit-details-marker { display: none; }
+
+  .svc-assumptions summary::before {
+    content: '+';
+    display: inline-block;
+    width: 0.9rem;
+    color: var(--svc-accent);
+    font-weight: 500;
+  }
+
+  .svc-assumptions[open] summary::before { content: '−'; }
+
+  .svc-assumption-list {
+    margin: 1rem 0 0 0;
+    font-size: 0.85rem;
+    color: var(--svc-muted);
+    line-height: 1.55;
+  }
+
+  .svc-assumption-list dt {
+    color: var(--svc-text);
+    font-weight: 500;
+    margin-top: 0.7rem;
+  }
+
+  .svc-assumption-list dt:first-child { margin-top: 0; }
+
+  .svc-assumption-list dd {
+    margin: 0.2rem 0 0 0;
+    font-family: var(--svc-font-mono);
+    font-size: 0.77rem;
+  }
+
+  .svc-footnote {
+    margin-top: 1.25rem;
+    padding: 0.95rem 1.1rem;
+    background: var(--svc-surface-soft);
+    border-left: 3px solid var(--svc-accent);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.85rem;
+    color: var(--svc-muted);
+    line-height: 1.55;
+  }
+
+  .svc-footnote-title {
+    color: var(--svc-text);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  @media (max-width: 720px) {
+    .svc-root { padding: 1.25rem; }
+    .svc-grid { grid-template-columns: 1fr; }
+    .svc-title { font-size: 1.3rem; }
+    .svc-tile-value { font-size: 1.55rem; }
+    .svc-input-value { font-size: 1.2rem; }
+  }
+</style>
+
+<div class="svc-root" id="savings-calculator" role="region" aria-label="Savings calculator">
+  <div class="svc-header">
+    <span class="svc-eyebrow">Impact Model</span>
+    <h3 class="svc-title">What automating internal logistics delivers for BAPCO</h3>
+    <p class="svc-sub">
+      Drag the slider to set annual drone missions. The four outputs show the benefits Valthr delivers
+      compared with the current manual baseline of a walking technician and a Toyota Hilux pickup. The
+      default of 22,100 missions per year matches the operational baseline defined in the report:
+      100 deliveries per working day across 221 days.
+    </p>
+  </div>
+
+  <div class="svc-input-block">
+    <div class="svc-input-row">
+      <span class="svc-input-label">Annual drone missions</span>
+      <span class="svc-input-value">
+        <span id="svc-val-missions">22,100</span><span class="svc-unit">per year</span>
+      </span>
+    </div>
+    <input type="range"
+           id="svc-slider"
+           class="svc-slider"
+           min="5000"
+           max="50000"
+           step="100"
+           value="22100"
+           aria-label="Annual drone missions">
+    <div class="svc-presets" role="group" aria-label="Preset scenarios">
+      <button type="button" class="svc-preset" data-val="5000">5k · pilot</button>
+      <button type="button" class="svc-preset active" data-val="22100">22.1k · report baseline</button>
+      <button type="button" class="svc-preset" data-val="36500">36.5k · every day</button>
+      <button type="button" class="svc-preset" data-val="50000">50k · full scale</button>
+    </div>
+  </div>
+
+  <div class="svc-grid">
+    <!-- Tile 1 · Worker hours reclaimed -->
+    <div class="svc-tile">
+      <svg class="svc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/>
+        <polyline points="12 7 12 12 15 14"/>
+      </svg>
+      <span class="svc-tile-label">Worker hours reclaimed</span>
+      <div class="svc-tile-value-wrap">
+        <span class="svc-tile-value" id="svc-hours">9,208</span>
+        <span class="svc-tile-unit">hrs/yr</span>
+      </div>
+      <p class="svc-tile-caption" id="svc-hours-caption">
+        Equivalent to 5.2 full time technicians redeployed from manual deliveries to core engineering work.
+      </p>
+    </div>
+
+    <!-- Tile 2 · Hazardous zone exposure avoided -->
+    <div class="svc-tile">
+      <svg class="svc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2L4 6v6c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z"/>
+        <polyline points="9 12 11 14 15 10"/>
+      </svg>
+      <span class="svc-tile-label">Hazardous zone exposure avoided</span>
+      <div class="svc-tile-value-wrap">
+        <span class="svc-tile-value" id="svc-hazard">5,525</span>
+        <span class="svc-tile-unit">hrs/yr</span>
+      </div>
+      <p class="svc-tile-caption" id="svc-hazard-caption">
+        Technician time removed from process areas classified under ATEX (potentially explosive atmospheres). That is 331,500 fewer minutes of exposure each year.
+      </p>
+    </div>
+
+    <!-- Tile 3 · CO₂ avoided -->
+    <div class="svc-tile">
+      <svg class="svc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 20c-2 0-3.5-1.5-3.5-4 0-5 5-8 10-8 3 0 6 1 7.5 3"/>
+        <path d="M21 5v6c0 5.5-4.5 10-10 10"/>
+        <path d="M11 21c-2-1-3-3-3-5"/>
+      </svg>
+      <span class="svc-tile-label">CO₂ avoided vs. Hilux baseline</span>
+      <div class="svc-tile-value-wrap">
+        <span class="svc-tile-value" id="svc-co2">3.2</span>
+        <span class="svc-tile-unit">tonnes CO₂/yr</span>
+      </div>
+      <p class="svc-tile-caption" id="svc-co2-caption">
+        Drone at 0.39 kg CO₂ per mission, versus Hilux at 0.54 kg over a 2 km round trip. Equivalent to the annual absorption of around 152 mature trees.
+      </p>
+    </div>
+
+    <!-- Tile 4 · Labour value recovered -->
+    <div class="svc-tile">
+      <svg class="svc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="6" width="18" height="12" rx="2"/>
+        <circle cx="12" cy="12" r="2.5"/>
+        <line x1="7" y1="10" x2="7" y2="10.01"/>
+        <line x1="17" y1="14" x2="17" y2="14.01"/>
+      </svg>
+      <span class="svc-tile-label">Labour value recovered</span>
+      <div class="svc-tile-value-wrap">
+        <span class="svc-tile-value" id="svc-value">£80,020</span>
+        <span class="svc-tile-unit">per year</span>
+      </div>
+      <p class="svc-tile-caption" id="svc-value-caption">
+        Monetary value of the technician time redeployed from transport errands to core engineering work.
+      </p>
+    </div>
+  </div>
+
+  <div class="svc-footnote">
+    <span class="svc-footnote-title">Note on cost interpretation</span>
+    The Labour value recovered figure represents the monetary value of technician time that would otherwise
+    be spent on manual deliveries. It is not a direct cash saving; the Valthr system has its own estimated
+    annual operating cost of approximately £265,000, comprising £227,441 of OPEX and £38,396 of amortised
+    CAPEX (see report section 7). The value shown in the Labour value recovered tile reflects engineering
+    capacity that BAPCO can redeploy to core work, rather than a reduction in cash expenditure.
+  </div>
+
+  <details class="svc-assumptions">
+    <summary>Assumptions &amp; sources</summary>
+    <dl class="svc-assumption-list">
+      <dt>Manual delivery duration</dt>
+      <dd>25 minutes per round trip across the 2.5 × 2 km refinery, covering loading, logging and return. Illustrative estimate based on typical industrial logistics workflows.</dd>
+
+      <dt>Time spent in ATEX classified zones per manual trip</dt>
+      <dd>15 minutes per trip, or 60% of the total delivery time. Conservative estimate, reflecting that most pickup and delivery points sit within classified process areas.</dd>
+
+      <dt>Technician hourly cost</dt>
+      <dd>£8.69 per hour. Derived from the £15,360 annual Bahrain petroleum technician salary (report section 7.2), divided by 1,768 working hours per year.</dd>
+
+      <dt>Working year for a full time technician</dt>
+      <dd>1,768 hours per year: 221 working days of 8 hours, after 10 public holidays and 30 standard leave days (report ABC model).</dd>
+
+      <dt>Manual baseline vehicle</dt>
+      <dd>Toyota Hilux pickup. Diesel consumption of 10 L per 100 km, emission factor of 0.268 kg CO₂ per km (UK DEFRA 2024 conversion factor for diesel), over a 2 km average round trip within the refinery.</dd>
+
+      <dt>Drone electricity consumption per mission</dt>
+      <dd>0.8 kWh per mission. Derived from the ABC model: 17,680 kWh per year across the fleet, divided by 22,100 missions per year (Appendix 1).</dd>
+
+      <dt>Bahrain grid carbon intensity</dt>
+      <dd>0.49 kg CO₂ per kWh, based on the 2020 national emission factor (Ember, published via Statista and the IEA). Bahrain's grid is almost entirely natural gas.</dd>
+
+      <dt>Valthr total cost per mission</dt>
+      <dd>£12.86 per mission, from the ABC model in report section 7.3. This comprises £2.57 of amortised CAPEX and £10.29 of OPEX.</dd>
+
+      <dt>Tree CO₂ equivalence</dt>
+      <dd>21 kg CO₂ absorbed per year by one mature tree (US EPA Greenhouse Gas Equivalencies reference).</dd>
+    </dl>
+  </details>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const root = document.getElementById('savings-calculator');
+  if (!root) return;
+
+  // ── Constants ──────────────────────────────────────────────────
+  const MANUAL_MIN_PER_DELIVERY  = 25;      // minutes per manual delivery
+  const HAZARDOUS_FRACTION       = 0.60;    // fraction of manual trip in ATEX zone
+  const WORKER_HOURLY_RATE       = 8.69;    // £ per hour (£15,360 per year ÷ 1,768 Bahrain working hours)
+  const HILUX_CO2_PER_MISSION    = 0.536;   // kg CO₂ per round trip (2 km × 0.268, from 10 L/100km × 2.68 kg/L)
+  const DRONE_KWH_PER_MISSION    = 0.8;     // kWh per mission (Appendix 1)
+  const BAHRAIN_GRID_KG_PER_KWH  = 0.49;    // kg CO₂ per kWh (Ember and IEA, 2020)
+  const DRONE_CO2_PER_MISSION    = DRONE_KWH_PER_MISSION * BAHRAIN_GRID_KG_PER_KWH; // 0.392 kg
+  const FTE_HOURS                = 1768;    // one Bahrain full time technician
+  const CO2_PER_TREE_PER_YEAR    = 21;      // kg CO₂ absorbed per year by a mature tree
+
+  // ── DOM refs ───────────────────────────────────────────────────
+  const slider          = root.querySelector('#svc-slider');
+  const valMissions     = root.querySelector('#svc-val-missions');
+  const valMissionsWrap = root.querySelector('.svc-input-value');
+  const valHours        = root.querySelector('#svc-hours');
+  const valHazard       = root.querySelector('#svc-hazard');
+  const valCO2          = root.querySelector('#svc-co2');
+  const valLabour       = root.querySelector('#svc-value');
+  const capHours        = root.querySelector('#svc-hours-caption');
+  const capHazard       = root.querySelector('#svc-hazard-caption');
+  const capCO2          = root.querySelector('#svc-co2-caption');
+  const presets         = root.querySelectorAll('.svc-preset');
+
+  // ── Formatters ─────────────────────────────────────────────────
+  const intFmt = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 0 });
+  const decFmt = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  const currencyFmt = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 });
+
+  // ── Helpers ────────────────────────────────────────────────────
+  function flash(el) {
+    if (!el) return;
+    el.classList.remove('flash');
+    void el.offsetWidth;  // force reflow so the animation retriggers
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 250);
+  }
+
+  function updateSliderFill() {
+    const min = parseFloat(slider.min);
+    const max = parseFloat(slider.max);
+    const val = parseFloat(slider.value);
+    const pct = ((val - min) / (max - min)) * 100;
+    slider.style.background =
+      'linear-gradient(to right, var(--svc-accent) 0%, var(--svc-accent) ' + pct +
+      '%, var(--svc-dim) ' + pct + '%, var(--svc-dim) 100%)';
+  }
+
+  // ── Render ─────────────────────────────────────────────────────
+  function render(n) {
+    const hoursReclaimed = (n * MANUAL_MIN_PER_DELIVERY) / 60;
+    const hazardHours    = hoursReclaimed * HAZARDOUS_FRACTION;
+    const hazardMinutes  = hazardHours * 60;
+    const co2SavedKg     = n * (HILUX_CO2_PER_MISSION - DRONE_CO2_PER_MISSION);
+    const co2SavedTonnes = co2SavedKg / 1000;
+    const labourValue    = hoursReclaimed * WORKER_HOURLY_RATE;
+    const fteEquivalent  = hoursReclaimed / FTE_HOURS;
+    const treesEquiv     = co2SavedKg / CO2_PER_TREE_PER_YEAR;
+
+    // Numeric values
+    valMissions.textContent = intFmt.format(n);
+    valHours.textContent    = intFmt.format(hoursReclaimed);
+    valHazard.textContent   = intFmt.format(hazardHours);
+    valCO2.textContent      = decFmt.format(co2SavedTonnes);
+    valLabour.textContent   = currencyFmt.format(labourValue);
+
+    // Dynamic captions
+    capHours.textContent = 'Equivalent to ' + decFmt.format(fteEquivalent) +
+      ' full time technicians redeployed from manual deliveries to core engineering work.';
+    capHazard.textContent = 'Technician time removed from process areas classified under ATEX (potentially explosive atmospheres). That is ' +
+      intFmt.format(hazardMinutes) + ' fewer minutes of exposure each year.';
+    capCO2.textContent = 'Drone at 0.39 kg CO₂ per mission, versus Hilux at 0.54 kg over a 2 km round trip. Equivalent to the annual absorption of around ' +
+      intFmt.format(treesEquiv) + ' mature trees.';
+
+    // Flash
+    [valMissionsWrap, valHours, valHazard, valCO2, valLabour].forEach(flash);
+
+    // Preset active state
+    presets.forEach(p => p.classList.toggle('active', parseInt(p.dataset.val, 10) === n));
+
+    // Slider fill
+    updateSliderFill();
+  }
+
+  // ── Wire events ────────────────────────────────────────────────
+  slider.addEventListener('input', e => render(parseInt(e.target.value, 10)));
+
+  presets.forEach(p => {
+    p.addEventListener('click', () => {
+      const v = parseInt(p.dataset.val, 10);
+      slider.value = v;
+      render(v);
+    });
+  });
+
+  // ── Initial paint ──────────────────────────────────────────────
+  render(parseInt(slider.value, 10));
+})();
+</script>
