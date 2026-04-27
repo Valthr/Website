@@ -104,8 +104,8 @@
       <ul class="nav-links hidden md:flex items-center gap-8 list-none m-0 p-0" role="list">
         <li><a href="#about">About</a></li>
         <li><a href="#simulation">Simulation</a></li>
+        <li><a href="#impact">Impact</a></li>
         <li><a href="#chatbot">Research</a></li>
-        <li><a href="#features">Features</a></li>
         <li><a href="#team">Team</a></li>
       </ul>
 
@@ -123,8 +123,8 @@
     <div id="nav-mobile-menu" role="menu" aria-label="Mobile navigation">
       <a href="#about"      role="menuitem">About</a>
       <a href="#simulation" role="menuitem">Simulation</a>
+      <a href="#impact"     role="menuitem">Impact</a>
       <a href="#chatbot"    role="menuitem">Research</a>
-      <a href="#features"   role="menuitem">Features</a>
       <a href="#team"       role="menuitem">Team</a>
     </div>
   </nav>
@@ -135,8 +135,11 @@
   ════════════════════════════════════════════════════════════════════════ -->
   <section id="hero" class="relative min-h-screen flex items-center overflow-hidden">
 
-    <!-- Video background -->
-    <video class="hero-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+    <!-- Hero background video — blurred ambient backdrop fills the letterbox edges -->
+    <video class="hero-bg-blur" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+      <source src="assets/videos/hero-video.mp4" type="video/mp4">
+    </video>
+    <video class="hero-bg-image" autoplay muted loop playsinline aria-hidden="true">
       <source src="assets/videos/hero-video.mp4" type="video/mp4">
     </video>
 
@@ -171,6 +174,9 @@
               <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM6 5.5l5 2.5-5 2.5V5.5z"/>
             </svg>
             View Live Simulation
+          </a>
+          <a href="#impact" class="btn-secondary btn-secondary-hero" aria-label="See operational impact vs ground delivery">
+            vs. Ground Delivery
           </a>
           <a href="#about" class="btn-secondary btn-secondary-hero" aria-label="Learn how it works">
             How It Works
@@ -425,11 +431,436 @@
 
 
   <!-- ═══════════════════════════════════════════════════════════════════
+       IMPACT MODEL
+  ════════════════════════════════════════════════════════════════════════ -->
+  <section id="impact" class="bg-surface py-28 px-6" aria-label="Impact model — Drone vs. ground delivery">
+    <div class="max-w-7xl mx-auto">
+
+      <div class="mb-12">
+        <span class="section-eyebrow reveal-item">Impact Model</span>
+        <h2 class="section-title text-[clamp(1.8rem,3.5vw,2.8rem)] mb-4 reveal-item">Quantify Drone vs. Ground Delivery</h2>
+        <p class="section-subtitle reveal-item" style="max-width:none">
+          Drag the slider to project annual savings from replacing manual delivery with autonomous drones. The 22,100-mission default reflects the report baseline of 100 deliveries across 221 working days.
+        </p>
+      </div>
+
+      <style>
+        .svc-root {
+          --svc-accent: #d97706;
+          --svc-accent-light: #fef3c7;
+          --svc-surface-soft: #f8f7f4;
+          --svc-dim: #eae9e5;
+          --svc-bright: #ccc9c0;
+          --svc-text: #111111;
+          --svc-muted: #6b7280;
+          font-family: 'Space Grotesk', system-ui, sans-serif;
+          color: var(--svc-text);
+          line-height: 1.5;
+        }
+        .svc-root *, .svc-root *::before, .svc-root *::after { box-sizing: border-box; }
+
+        .svc-input-block { margin-bottom: 1.5rem; }
+        .svc-input-row {
+          display: flex; justify-content: space-between; align-items: baseline;
+          margin-bottom: 0.9rem; gap: 1rem; flex-wrap: wrap;
+        }
+        .svc-input-label {
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 0.72rem; letter-spacing: 0.18em;
+          text-transform: uppercase; color: var(--svc-muted);
+        }
+        .svc-input-value {
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 1.4rem; font-weight: 500; color: var(--svc-text);
+          font-variant-numeric: tabular-nums; transition: color 0.15s ease;
+        }
+        .svc-input-value.flash { color: var(--svc-accent); }
+        .svc-unit { font-size: 0.75rem; color: var(--svc-muted); margin-left: 0.35rem; letter-spacing: 0.05em; }
+
+        .svc-slider {
+          width: 100%; appearance: none; -webkit-appearance: none;
+          height: 4px; border-radius: 2px; outline: none; cursor: pointer; margin: 0;
+          background: linear-gradient(to right, var(--svc-accent) 0%, var(--svc-accent) 0%, var(--svc-dim) 0%, var(--svc-dim) 100%);
+        }
+        .svc-slider::-webkit-slider-thumb {
+          -webkit-appearance: none; width: 20px; height: 20px;
+          background: var(--svc-accent); border-radius: 50%; cursor: grab;
+          border: 3px solid #fff; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+          transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .svc-slider::-webkit-slider-thumb:hover { transform: scale(1.12); }
+        .svc-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.18); }
+        .svc-slider::-moz-range-thumb {
+          width: 20px; height: 20px; background: var(--svc-accent);
+          border-radius: 50%; cursor: grab; border: 3px solid #fff;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+        }
+
+        .svc-presets { display: flex; gap: 0.4rem; margin-top: 1rem; flex-wrap: wrap; }
+        .svc-preset {
+          padding: 0.4rem 0.75rem; background: #fff;
+          border: 1px solid var(--svc-dim); border-radius: 6px;
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 0.72rem; color: var(--svc-muted); cursor: pointer;
+          transition: all 0.15s ease; letter-spacing: 0.02em;
+        }
+        .svc-preset:hover { border-color: var(--svc-accent); color: var(--svc-text); }
+        .svc-preset.active { background: var(--svc-accent); color: #fff; border-color: var(--svc-accent); }
+
+        .svc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
+        .svc-tile {
+          padding: 1.25rem; background: #fff;
+          border: 1px solid var(--svc-dim); border-radius: 10px;
+          position: relative;
+          transition: border-color 0.35s ease, background 0.35s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .svc-tile:hover {
+          border-color: var(--svc-bright); transform: translateY(-2px);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+        }
+        .svc-tile.flash { border-color: var(--svc-accent); background: var(--svc-accent-light); }
+        .svc-tile-icon { width: 26px; height: 26px; color: var(--svc-accent); margin-bottom: 0.85rem; stroke-width: 1.75; }
+        .svc-tile-label {
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase;
+          color: var(--svc-muted); margin-bottom: 0.4rem; display: block;
+        }
+        .svc-tile-value-wrap { display: flex; align-items: baseline; gap: 0.35rem; flex-wrap: wrap; }
+        .svc-tile-value {
+          font-family: 'Syne', system-ui, sans-serif;
+          font-weight: 700; font-size: 1.85rem; line-height: 1;
+          color: var(--svc-text); font-variant-numeric: tabular-nums;
+          letter-spacing: -0.01em; transition: color 0.15s ease;
+        }
+        .svc-tile-value.flash { color: var(--svc-accent); }
+        .svc-tile-unit {
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 0.78rem; color: var(--svc-muted); font-weight: 400;
+        }
+        .svc-tile-caption { font-size: 0.82rem; color: var(--svc-muted); margin: 0.6rem 0 0 0; line-height: 1.45; }
+
+        .svc-footnote {
+          margin-top: 1.5rem; padding: 0.95rem 1.1rem;
+          background: var(--svc-surface-soft);
+          border-left: 3px solid var(--svc-accent);
+          border-radius: 0 6px 6px 0;
+          font-size: 0.85rem; color: var(--svc-muted); line-height: 1.55;
+        }
+        .svc-footnote-title { color: var(--svc-text); font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+        .svc-assumptions { margin-top: 1.25rem; border-top: 1px solid var(--svc-dim); padding-top: 1.1rem; }
+        .svc-assumptions summary {
+          cursor: pointer;
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+          color: var(--svc-muted); user-select: none; padding: 0.25rem 0;
+          list-style: none; transition: color 0.15s ease;
+        }
+        .svc-assumptions summary:hover { color: var(--svc-text); }
+        .svc-assumptions summary::-webkit-details-marker { display: none; }
+        .svc-assumptions summary::before {
+          content: '+'; display: inline-block; width: 0.9rem;
+          color: var(--svc-accent); font-weight: 500;
+        }
+        .svc-assumptions[open] summary::before { content: '−'; }
+        .svc-assumption-list { margin: 1rem 0 0 0; font-size: 0.85rem; color: var(--svc-muted); line-height: 1.55; }
+        .svc-assumption-list dt { color: var(--svc-text); font-weight: 500; margin-top: 0.7rem; }
+        .svc-assumption-list dt:first-child { margin-top: 0; }
+        .svc-assumption-list dd {
+          margin: 0.2rem 0 0 0;
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 0.77rem;
+        }
+
+        .svc-compare {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          align-items: center;
+          gap: 2rem;
+          margin-bottom: 2.5rem;
+        }
+        .svc-compare-side { display: flex; flex-direction: column; align-items: center; text-align: center; margin: 0; }
+        .svc-compare-img {
+          width: 100%; height: 140px;
+          display: flex; align-items: center; justify-content: center;
+          margin-bottom: 1rem;
+        }
+        .svc-compare-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .svc-compare-base .svc-compare-img img { filter: grayscale(45%) opacity(0.88); }
+        .svc-compare-tag {
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+          color: var(--svc-muted);
+          display: block; margin-bottom: 0.4rem;
+        }
+        .svc-compare-new .svc-compare-tag { color: var(--svc-accent); }
+        .svc-compare-name {
+          font-family: 'Syne', system-ui, sans-serif;
+          font-weight: 700; font-size: 1.15rem;
+          color: var(--svc-text); margin: 0 0 0.35rem 0;
+          letter-spacing: -0.01em;
+        }
+        .svc-compare-stat {
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 0.78rem; color: var(--svc-muted);
+          margin: 0; line-height: 1.4;
+        }
+        .svc-compare-vs {
+          font-family: 'Syne', system-ui, sans-serif;
+          font-weight: 800; font-size: 1rem;
+          color: var(--svc-accent);
+          width: 52px; height: 52px;
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          border: 2px solid var(--svc-accent);
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          background: #fff;
+        }
+
+        @media (max-width: 720px) {
+          .svc-grid { grid-template-columns: 1fr; }
+          .svc-tile-value { font-size: 1.55rem; }
+          .svc-input-value { font-size: 1.2rem; }
+          .svc-compare { grid-template-columns: 1fr; gap: 1rem; }
+          .svc-compare-vs { margin: 0 auto; }
+        }
+      </style>
+
+      <div class="svc-root reveal-item" id="savings-calculator" role="region" aria-label="Savings calculator">
+
+        <div class="svc-compare" aria-label="Comparison: Valthr drone vs Toyota Hilux baseline">
+          <figure class="svc-compare-side svc-compare-new">
+            <div class="svc-compare-img">
+              <img src="assets/images/drone.png" alt="Valthr autonomous delivery drone carrying a payload" loading="lazy">
+            </div>
+            <figcaption>
+              <span class="svc-compare-tag">Valthr · Aerial</span>
+              <h4 class="svc-compare-name">Autonomous drone</h4>
+              <p class="svc-compare-stat">0.39 kg CO₂ / mission</p>
+            </figcaption>
+          </figure>
+
+          <div class="svc-compare-vs" aria-hidden="true">vs</div>
+
+          <figure class="svc-compare-side svc-compare-base">
+            <div class="svc-compare-img">
+              <img src="assets/images/toyota-hilux.png" alt="Toyota Hilux pickup truck — manual delivery baseline" loading="lazy">
+            </div>
+            <figcaption>
+              <span class="svc-compare-tag">Manual baseline · Ground</span>
+              <h4 class="svc-compare-name">Toyota Hilux</h4>
+              <p class="svc-compare-stat">0.54 kg CO₂ / mission</p>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="svc-input-block">
+          <div class="svc-input-row">
+            <span class="svc-input-label">Annual drone missions</span>
+            <span class="svc-input-value">
+              <span id="svc-val-missions">22,100</span><span class="svc-unit">per year</span>
+            </span>
+          </div>
+          <input type="range" id="svc-slider" class="svc-slider" min="5000" max="50000" step="100" value="22100" aria-label="Annual drone missions">
+          <div class="svc-presets" role="group" aria-label="Preset scenarios">
+            <button type="button" class="svc-preset" data-val="5000">5k · pilot</button>
+            <button type="button" class="svc-preset active" data-val="22100">22.1k · report baseline</button>
+            <button type="button" class="svc-preset" data-val="36500">36.5k · every day</button>
+            <button type="button" class="svc-preset" data-val="50000">50k · full scale</button>
+          </div>
+        </div>
+
+        <div class="svc-grid">
+          <div class="svc-tile">
+            <svg class="svc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
+            </svg>
+            <span class="svc-tile-label">Worker hours reclaimed</span>
+            <div class="svc-tile-value-wrap">
+              <span class="svc-tile-value" id="svc-hours">9,208</span>
+              <span class="svc-tile-unit">hrs/yr</span>
+            </div>
+            <p class="svc-tile-caption" id="svc-hours-caption">Equivalent to 5.2 full-time technicians freed from manual deliveries for core engineering work.</p>
+          </div>
+
+          <div class="svc-tile">
+            <svg class="svc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2L4 6v6c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z"/><polyline points="9 12 11 14 15 10"/>
+            </svg>
+            <span class="svc-tile-label">Hazardous zone exposure avoided</span>
+            <div class="svc-tile-value-wrap">
+              <span class="svc-tile-value" id="svc-hazard">5,525</span>
+              <span class="svc-tile-unit">hrs/yr</span>
+            </div>
+            <p class="svc-tile-caption" id="svc-hazard-caption">Technician time pulled out of ATEX-classified zones (potentially explosive atmospheres) — 331,500 fewer minutes of exposure each year.</p>
+          </div>
+
+          <div class="svc-tile">
+            <svg class="svc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 20c-2 0-3.5-1.5-3.5-4 0-5 5-8 10-8 3 0 6 1 7.5 3"/>
+              <path d="M21 5v6c0 5.5-4.5 10-10 10"/>
+              <path d="M11 21c-2-1-3-3-3-5"/>
+            </svg>
+            <span class="svc-tile-label">CO₂ avoided vs. Hilux baseline</span>
+            <div class="svc-tile-value-wrap">
+              <span class="svc-tile-value" id="svc-co2">3.2</span>
+              <span class="svc-tile-unit">tonnes CO₂/yr</span>
+            </div>
+            <p class="svc-tile-caption" id="svc-co2-caption">Drone: 0.39 kg CO₂ per mission. Hilux: 0.54 kg over a 2 km round trip. The yearly difference equals what about 152 mature trees absorb.</p>
+          </div>
+
+          <div class="svc-tile">
+            <svg class="svc-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="6" width="18" height="12" rx="2"/>
+              <circle cx="12" cy="12" r="2.5"/>
+              <line x1="7" y1="10" x2="7" y2="10.01"/>
+              <line x1="17" y1="14" x2="17" y2="14.01"/>
+            </svg>
+            <span class="svc-tile-label">Labour value recovered</span>
+            <div class="svc-tile-value-wrap">
+              <span class="svc-tile-value" id="svc-value">£80,020</span>
+              <span class="svc-tile-unit">per year</span>
+            </div>
+            <p class="svc-tile-caption" id="svc-value-caption">The cash-equivalent value of technician time shifted from transport errands to core engineering work.</p>
+          </div>
+        </div>
+
+        <div class="svc-footnote">
+          <span class="svc-footnote-title">Note on cost interpretation</span>
+          The Labour value recovered figure is the cash-equivalent value of technician time that would otherwise go to manual deliveries — not a direct cost saving. Valthr itself runs at roughly £265,000 per year (£227,441 OPEX + £38,396 amortised CAPEX; see report section 7). What this tile captures is engineering capacity BAPCO can redirect to core work, not a drop in cash spend.
+        </div>
+
+        <details class="svc-assumptions">
+          <summary>Assumptions &amp; sources</summary>
+          <dl class="svc-assumption-list">
+            <dt>Manual delivery duration</dt>
+            <dd>25 minutes per round trip across the 2.5 × 2 km refinery, covering loading, logging and return. Illustrative estimate based on typical industrial logistics workflows.</dd>
+            <dt>Time spent in ATEX classified zones per manual trip</dt>
+            <dd>15 minutes per trip, or 60% of the total delivery time. Conservative estimate, reflecting that most pickup and delivery points sit within classified process areas.</dd>
+            <dt>Technician hourly cost</dt>
+            <dd>£8.69 per hour. Derived from the £15,360 annual Bahrain petroleum technician salary (report section 7.2), divided by 1,768 working hours per year.</dd>
+            <dt>Working year for a full time technician</dt>
+            <dd>1,768 hours per year: 221 working days of 8 hours, after 10 public holidays and 30 standard leave days (report ABC model).</dd>
+            <dt>Manual baseline vehicle</dt>
+            <dd>Toyota Hilux pickup. Diesel consumption of 10 L per 100 km, emission factor of 0.268 kg CO₂ per km (UK DEFRA 2024 conversion factor for diesel), over a 2 km average round trip within the refinery.</dd>
+            <dt>Drone electricity consumption per mission</dt>
+            <dd>0.8 kWh per mission. Derived from the ABC model: 17,680 kWh per year across the fleet, divided by 22,100 missions per year (Appendix 1).</dd>
+            <dt>Bahrain grid carbon intensity</dt>
+            <dd>0.49 kg CO₂ per kWh, based on the 2020 national emission factor (Ember, published via Statista and the IEA). Bahrain's grid is almost entirely natural gas.</dd>
+            <dt>Valthr total cost per mission</dt>
+            <dd>£12.86 per mission, from the ABC model in report section 7.3. This comprises £2.57 of amortised CAPEX and £10.29 of OPEX.</dd>
+            <dt>Tree CO₂ equivalence</dt>
+            <dd>21 kg CO₂ absorbed per year by one mature tree (US EPA Greenhouse Gas Equivalencies reference).</dd>
+          </dl>
+        </details>
+      </div>
+
+      <script>
+      (function () {
+        'use strict';
+        const root = document.getElementById('savings-calculator');
+        if (!root) return;
+
+        const MANUAL_MIN_PER_DELIVERY  = 25;
+        const HAZARDOUS_FRACTION       = 0.60;
+        const WORKER_HOURLY_RATE       = 8.69;
+        const HILUX_CO2_PER_MISSION    = 0.536;
+        const DRONE_KWH_PER_MISSION    = 0.8;
+        const BAHRAIN_GRID_KG_PER_KWH  = 0.49;
+        const DRONE_CO2_PER_MISSION    = DRONE_KWH_PER_MISSION * BAHRAIN_GRID_KG_PER_KWH;
+        const FTE_HOURS                = 1768;
+        const CO2_PER_TREE_PER_YEAR    = 21;
+
+        const slider          = root.querySelector('#svc-slider');
+        const valMissions     = root.querySelector('#svc-val-missions');
+        const valMissionsWrap = root.querySelector('.svc-input-value');
+        const valHours        = root.querySelector('#svc-hours');
+        const valHazard       = root.querySelector('#svc-hazard');
+        const valCO2          = root.querySelector('#svc-co2');
+        const valLabour       = root.querySelector('#svc-value');
+        const capHours        = root.querySelector('#svc-hours-caption');
+        const capHazard       = root.querySelector('#svc-hazard-caption');
+        const capCO2          = root.querySelector('#svc-co2-caption');
+        const presets         = root.querySelectorAll('.svc-preset');
+
+        const intFmt = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 0 });
+        const decFmt = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+        const currencyFmt = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 });
+
+        function flash(el, hold) {
+          if (!el) return;
+          el.classList.remove('flash');
+          void el.offsetWidth;
+          el.classList.add('flash');
+          setTimeout(() => el.classList.remove('flash'), hold || 250);
+        }
+        function flashTileFor(valueEl) {
+          if (!valueEl) return;
+          const tile = valueEl.closest('.svc-tile');
+          if (tile) flash(tile, 380);
+        }
+        function updateSliderFill() {
+          const min = parseFloat(slider.min);
+          const max = parseFloat(slider.max);
+          const val = parseFloat(slider.value);
+          const pct = ((val - min) / (max - min)) * 100;
+          slider.style.background =
+            'linear-gradient(to right, var(--svc-accent) 0%, var(--svc-accent) ' + pct +
+            '%, var(--svc-dim) ' + pct + '%, var(--svc-dim) 100%)';
+        }
+        function render(n) {
+          const hoursReclaimed = (n * MANUAL_MIN_PER_DELIVERY) / 60;
+          const hazardHours    = hoursReclaimed * HAZARDOUS_FRACTION;
+          const hazardMinutes  = hazardHours * 60;
+          const co2SavedKg     = n * (HILUX_CO2_PER_MISSION - DRONE_CO2_PER_MISSION);
+          const co2SavedTonnes = co2SavedKg / 1000;
+          const labourValue    = hoursReclaimed * WORKER_HOURLY_RATE;
+          const fteEquivalent  = hoursReclaimed / FTE_HOURS;
+          const treesEquiv     = co2SavedKg / CO2_PER_TREE_PER_YEAR;
+
+          valMissions.textContent = intFmt.format(n);
+          valHours.textContent    = intFmt.format(hoursReclaimed);
+          valHazard.textContent   = intFmt.format(hazardHours);
+          valCO2.textContent      = decFmt.format(co2SavedTonnes);
+          valLabour.textContent   = currencyFmt.format(labourValue);
+
+          capHours.textContent = 'Equivalent to ' + decFmt.format(fteEquivalent) +
+            ' full-time technicians freed from manual deliveries for core engineering work.';
+          capHazard.textContent = 'Technician time pulled out of ATEX-classified zones (potentially explosive atmospheres) — ' +
+            intFmt.format(hazardMinutes) + ' fewer minutes of exposure each year.';
+          capCO2.textContent = 'Drone: 0.39 kg CO₂ per mission. Hilux: 0.54 kg over a 2 km round trip. The yearly difference equals what about ' +
+            intFmt.format(treesEquiv) + ' mature trees absorb.';
+
+          [valMissionsWrap, valHours, valHazard, valCO2, valLabour].forEach(el => flash(el));
+          [valHours, valHazard, valCO2, valLabour].forEach(flashTileFor);
+
+          presets.forEach(p => p.classList.toggle('active', parseInt(p.dataset.val, 10) === n));
+          updateSliderFill();
+        }
+
+        slider.addEventListener('input', e => render(parseInt(e.target.value, 10)));
+        presets.forEach(p => {
+          p.addEventListener('click', () => {
+            const v = parseInt(p.dataset.val, 10);
+            slider.value = v;
+            render(v);
+          });
+        });
+        render(parseInt(slider.value, 10));
+      })();
+      </script>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════
        CHATBOT
   ════════════════════════════════════════════════════════════════════════ -->
-  <section id="chatbot" class="bg-surface py-20 px-0" aria-label="AI research assistant">
+  <section id="chatbot" class="bg-void py-20 px-0" aria-label="Research intelligence">
     <div class="max-w-7xl mx-auto px-6 mb-12 text-center">
-      <span class="section-eyebrow">AI Research Assistant</span>
+      <span class="section-eyebrow">Research Intelligence</span>
       <h2 class="section-title text-[clamp(1.8rem,3.5vw,2.8rem)] mb-4">
         Ask the Report
       </h2>
@@ -507,49 +938,6 @@
       </div><!-- /chat-interface -->
       </div><!-- /chat-box -->
 
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════════════════════════════
-       FEATURES
-  ════════════════════════════════════════════════════════════════════════ -->
-  <section id="features" class="bg-void py-28 px-6" aria-label="Features and tools">
-    <div class="max-w-7xl mx-auto">
-
-      <div class="mb-12">
-        <span class="section-eyebrow reveal-item">Tools</span>
-        <h2 class="section-title text-[clamp(1.8rem,3.5vw,2.8rem)] mb-4 reveal-item">Feature Modules</h2>
-        <p class="section-subtitle reveal-item">
-          Standalone interactive tools that extend the Valthr platform. Each module is self-contained and can be used independently.
-        </p>
-      </div>
-
-      <div id="features-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <div class="feature-slot reveal-item" data-src="features/savings-calculator.html" data-title="Savings Calculator">
-          <div class="feature-slot-placeholder">
-            <div class="placeholder-icon"><i data-lucide="calculator"></i></div>
-            <h4>Savings Calculator</h4>
-            <p>
-              Enter your annual drone flights and see projected savings in cost, time, and CO₂ emissions compared to ground delivery.
-            </p>
-            <span class="font-mono text-subtle text-[0.75rem] tracking-widest uppercase mt-2">Coming Soon</span>
-          </div>
-        </div>
-
-        <div class="feature-slot reveal-item" data-src="features/route-analyser.html" data-title="Route Analyser">
-          <div class="feature-slot-placeholder">
-            <div class="placeholder-icon"><i data-lucide="map"></i></div>
-            <h4>Route Analyser</h4>
-            <p>
-              Analyse and compare route efficiency across different delivery scenarios on the BAPCO network.
-            </p>
-            <span class="font-mono text-subtle text-[0.75rem] tracking-widest uppercase mt-2">Coming Soon</span>
-          </div>
-        </div>
-
-      </div>
     </div>
   </section>
 
@@ -710,12 +1098,23 @@
         ];
       }
 
+      // Steps for the impact section
+      function impactSteps() {
+        return [
+          {
+            element: document.querySelector('#savings-calculator'),
+            intro: 'The <b>Impact Model</b> quantifies operational savings vs. ground delivery. Drag the slider to project annual savings in worker hours, hazard exposure, CO₂ and labour value.',
+            position: 'top'
+          }
+        ];
+      }
+
       // Steps for the chat section
       function chatSteps() {
         return [
           {
             element: document.getElementById('chat-box'),
-            intro: 'The <b>AI Research Assistant</b> is grounded exclusively in the Valthr research report — ask it anything about the project.',
+            intro: 'The <b>Research Intelligence</b> assistant is grounded exclusively in the Valthr research report — ask it anything about the project.',
             position: 'top'
           },
           {
@@ -726,9 +1125,24 @@
         ];
       }
 
+      // Scroll the parent section of the upcoming step into view before showing it.
+      // Returns a Promise so intro.js waits for the scroll to settle.
+      function _crossSectionScroll(tour) {
+        let lastSection = null;
+        tour.onbeforechange(function (targetEl) {
+          const section = targetEl && targetEl.closest && targetEl.closest('section');
+          if (section && section !== lastSection) {
+            lastSection = section;
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return new Promise(function (resolve) { setTimeout(resolve, 600); });
+          }
+        });
+      }
+
       function _runTour(steps, onDone) {
         if (!window.introJs || !steps.length) return;
         const tour = introJs().setOptions(Object.assign({}, TOUR_OPTIONS, { steps }));
+        _crossSectionScroll(tour);
         if (onDone) { tour.oncomplete(onDone); tour.onexit(onDone); }
         tour.start();
       }
@@ -749,7 +1163,7 @@
         const simEl = document.getElementById('simulation');
         if (simEl) simEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         setTimeout(function () {
-          _runTour(simSteps().concat(chatSteps()), function () {
+          _runTour(simSteps().concat(impactSteps()).concat(chatSteps()), function () {
             localStorage.setItem(TOUR_KEY, '1');
           });
         }, 1800);
@@ -781,6 +1195,39 @@
       window.startValthrSimTour  = startSimTour;
       window.startValthrChatTour = startChatTour;
       window.startValthrTour     = startFullTour;
+    })();
+
+    // ── Playback slider tutorial (fires once after first simulation run) ──────
+    (function () {
+      const SLIDER_KEY = 'valthr-slider-tour-done';
+
+      function startSliderTour() {
+        if (localStorage.getItem(SLIDER_KEY)) return;
+        const sliderEl = document.getElementById('sim-playback');
+        if (!sliderEl || !window.introJs) return;
+        introJs().setOptions({
+          showBullets: false,
+          showProgress: false,
+          exitOnOverlayClick: true,
+          scrollToElement: true,
+          overlayOpacity: 0.45,
+          tooltipClass: 'valthr-tour-tooltip',
+          doneLabel: 'Got it',
+          steps: [{
+            element: sliderEl,
+            intro: 'Simulation complete! <b>Drag the slider</b> to scrub through the animation frame by frame — watch the drones retrace their routes at any point in time.',
+            position: 'top'
+          }]
+        }).oncomplete(function () {
+          localStorage.setItem(SLIDER_KEY, '1');
+        }).onexit(function () {
+          localStorage.setItem(SLIDER_KEY, '1');
+        }).start();
+      }
+
+      document.addEventListener('valthr:sim-complete', function () {
+        setTimeout(startSliderTour, 600);
+      }, { once: true });
     })();
   </script>
 

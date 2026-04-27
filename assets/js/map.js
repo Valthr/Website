@@ -449,6 +449,7 @@ window.ValthrMap = (function () {
       stopPlayback();
       setRunButton('replay');
       updateHint('Simulation complete — press Replay to run again or modify the queue');
+      document.dispatchEvent(new CustomEvent('valthr:sim-complete'));
       return;
     }
     renderFrame(Math.floor(frameIndex));

@@ -10,6 +10,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
+  /* Reset the iframe document so the widget sits flush in the host section. */
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden; /* host iframe is auto-sized; suppress transient scrollbars */
+  }
+
   .svc-root {
     --svc-accent: #d97706;
     --svc-accent-light: #fef3c7;
@@ -27,10 +35,10 @@
     font-family: var(--svc-font-body);
     color: var(--svc-text);
     display: block;
-    padding: 2rem;
-    border-radius: 14px;
-    background: var(--svc-panel);
-    border: 1px solid var(--svc-dim);
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: none;
     line-height: 1.5;
   }
 
@@ -38,41 +46,12 @@
   .svc-root *::before,
   .svc-root *::after { box-sizing: border-box; }
 
-  .svc-header { margin-bottom: 1.5rem; }
-
-  .svc-eyebrow {
-    font-family: var(--svc-font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--svc-accent);
-    margin-bottom: 0.45rem;
-    display: block;
-  }
-
-  .svc-title {
-    font-family: var(--svc-font-heading);
-    font-weight: 700;
-    font-size: 1.55rem;
-    line-height: 1.2;
-    margin: 0 0 0.55rem 0;
-    color: var(--svc-text);
-    letter-spacing: -0.01em;
-  }
-
-  .svc-sub {
-    font-size: 0.95rem;
-    color: var(--svc-muted);
-    margin: 0;
-    max-width: 58ch;
-  }
-
   .svc-input-block {
-    padding: 1.5rem;
-    background: var(--svc-surface-soft);
-    border-radius: 10px;
-    margin-bottom: 1.25rem;
-    border: 1px solid var(--svc-dim);
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    margin-bottom: 1.5rem;
+    border: none;
   }
 
   .svc-input-row {
@@ -237,6 +216,50 @@
 
   .svc-tile-value.flash { color: var(--svc-accent); }
 
+  /* Live-link cue between the slider and the value tiles */
+  .svc-live-cue {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.1rem 0 0.85rem 0;
+    font-family: var(--svc-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--svc-accent);
+  }
+
+  .svc-live-cue::before,
+  .svc-live-cue::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--svc-accent), transparent);
+    opacity: 0.55;
+  }
+
+  .svc-live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--svc-accent);
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.55);
+    animation: svc-pulse 1.6s ease-out infinite;
+  }
+
+  @keyframes svc-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(217, 119, 6, 0.55); }
+    70%  { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0);    }
+    100% { box-shadow: 0 0 0 0   rgba(217, 119, 6, 0);    }
+  }
+
+  /* Tile flashes a soft amber wash when its number changes */
+  .svc-tile.flash {
+    border-color: var(--svc-accent);
+    background: var(--svc-accent-light);
+  }
+  .svc-tile { transition: border-color 0.35s ease, background 0.35s ease, transform 0.2s ease, box-shadow 0.2s ease; }
+
   .svc-tile-unit {
     font-family: var(--svc-font-mono);
     font-size: 0.78rem;
@@ -333,17 +356,6 @@
 </style>
 
 <div class="svc-root" id="savings-calculator" role="region" aria-label="Savings calculator">
-  <div class="svc-header">
-    <span class="svc-eyebrow">Impact Model</span>
-    <h3 class="svc-title">What automating internal logistics delivers for BAPCO</h3>
-    <p class="svc-sub">
-      Drag the slider to set annual drone missions. The four outputs show the benefits Valthr delivers
-      compared with the current manual baseline of a walking technician and a Toyota Hilux pickup. The
-      default of 22,100 missions per year matches the operational baseline defined in the report:
-      100 deliveries per working day across 221 days.
-    </p>
-  </div>
-
   <div class="svc-input-block">
     <div class="svc-input-row">
       <span class="svc-input-label">Annual drone missions</span>
@@ -380,7 +392,7 @@
         <span class="svc-tile-unit">hrs/yr</span>
       </div>
       <p class="svc-tile-caption" id="svc-hours-caption">
-        Equivalent to 5.2 full time technicians redeployed from manual deliveries to core engineering work.
+        Equivalent to 5.2 full-time technicians freed from manual deliveries for core engineering work.
       </p>
     </div>
 
@@ -396,7 +408,7 @@
         <span class="svc-tile-unit">hrs/yr</span>
       </div>
       <p class="svc-tile-caption" id="svc-hazard-caption">
-        Technician time removed from process areas classified under ATEX (potentially explosive atmospheres). That is 331,500 fewer minutes of exposure each year.
+        Technician time pulled out of ATEX-classified zones (potentially explosive atmospheres) — 331,500 fewer minutes of exposure each year.
       </p>
     </div>
 
@@ -413,7 +425,7 @@
         <span class="svc-tile-unit">tonnes CO₂/yr</span>
       </div>
       <p class="svc-tile-caption" id="svc-co2-caption">
-        Drone at 0.39 kg CO₂ per mission, versus Hilux at 0.54 kg over a 2 km round trip. Equivalent to the annual absorption of around 152 mature trees.
+        Drone: 0.39 kg CO₂ per mission. Hilux: 0.54 kg over a 2 km round trip. The yearly difference equals what about 152 mature trees absorb.
       </p>
     </div>
 
@@ -431,18 +443,17 @@
         <span class="svc-tile-unit">per year</span>
       </div>
       <p class="svc-tile-caption" id="svc-value-caption">
-        Monetary value of the technician time redeployed from transport errands to core engineering work.
+        The cash-equivalent value of technician time shifted from transport errands to core engineering work.
       </p>
     </div>
   </div>
 
   <div class="svc-footnote">
     <span class="svc-footnote-title">Note on cost interpretation</span>
-    The Labour value recovered figure represents the monetary value of technician time that would otherwise
-    be spent on manual deliveries. It is not a direct cash saving; the Valthr system has its own estimated
-    annual operating cost of approximately £265,000, comprising £227,441 of OPEX and £38,396 of amortised
-    CAPEX (see report section 7). The value shown in the Labour value recovered tile reflects engineering
-    capacity that BAPCO can redeploy to core work, rather than a reduction in cash expenditure.
+    The Labour value recovered figure is the cash-equivalent value of technician time that would otherwise
+    go to manual deliveries — not a direct cost saving. Valthr itself runs at roughly £265,000 per year
+    (£227,441 OPEX + £38,396 amortised CAPEX; see report section 7). What this tile captures is engineering
+    capacity BAPCO can redirect to core work, not a drop in cash spend.
   </div>
 
   <details class="svc-assumptions">
@@ -515,12 +526,18 @@
   const currencyFmt = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 });
 
   // ── Helpers ────────────────────────────────────────────────────
-  function flash(el) {
+  function flash(el, hold) {
     if (!el) return;
     el.classList.remove('flash');
     void el.offsetWidth;  // force reflow so the animation retriggers
     el.classList.add('flash');
-    setTimeout(() => el.classList.remove('flash'), 250);
+    setTimeout(() => el.classList.remove('flash'), hold || 250);
+  }
+
+  function flashTileFor(valueEl) {
+    if (!valueEl) return;
+    const tile = valueEl.closest('.svc-tile');
+    if (tile) flash(tile, 380);
   }
 
   function updateSliderFill() {
@@ -553,14 +570,15 @@
 
     // Dynamic captions
     capHours.textContent = 'Equivalent to ' + decFmt.format(fteEquivalent) +
-      ' full time technicians redeployed from manual deliveries to core engineering work.';
-    capHazard.textContent = 'Technician time removed from process areas classified under ATEX (potentially explosive atmospheres). That is ' +
+      ' full-time technicians freed from manual deliveries for core engineering work.';
+    capHazard.textContent = 'Technician time pulled out of ATEX-classified zones (potentially explosive atmospheres) — ' +
       intFmt.format(hazardMinutes) + ' fewer minutes of exposure each year.';
-    capCO2.textContent = 'Drone at 0.39 kg CO₂ per mission, versus Hilux at 0.54 kg over a 2 km round trip. Equivalent to the annual absorption of around ' +
-      intFmt.format(treesEquiv) + ' mature trees.';
+    capCO2.textContent = 'Drone: 0.39 kg CO₂ per mission. Hilux: 0.54 kg over a 2 km round trip. The yearly difference equals what about ' +
+      intFmt.format(treesEquiv) + ' mature trees absorb.';
 
-    // Flash
-    [valMissionsWrap, valHours, valHazard, valCO2, valLabour].forEach(flash);
+    // Flash the value text and the surrounding tile so the slider→cards link is unmissable
+    [valMissionsWrap, valHours, valHazard, valCO2, valLabour].forEach(el => flash(el));
+    [valHours, valHazard, valCO2, valLabour].forEach(flashTileFor);
 
     // Preset active state
     presets.forEach(p => p.classList.toggle('active', parseInt(p.dataset.val, 10) === n));

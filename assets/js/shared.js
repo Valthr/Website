@@ -60,6 +60,22 @@
 
     sections.forEach(s => spyObs.observe(s));
 
+    // Smooth-scroll for all in-page anchor links (nav + hero CTAs etc.)
+    // Accounts for the fixed nav so the section heading isn't hidden behind it.
+    const NAV_OFFSET = 72;
+    document.querySelectorAll('a[href^="#"]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        const hash = link.getAttribute('href');
+        if (!hash || hash === '#' || hash.length < 2) return;
+        const target = document.querySelector(hash);
+        if (!target) return;
+        e.preventDefault();
+        const top = target.getBoundingClientRect().top + window.pageYOffset - NAV_OFFSET;
+        window.scrollTo({ top, behavior: 'smooth' });
+        history.replaceState(null, '', hash);
+      });
+    });
+
     // Mobile nav toggle
     const mobileBtn = document.getElementById('nav-mobile-btn');
     const mobileMenu = document.getElementById('nav-mobile-menu');

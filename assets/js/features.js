@@ -13,18 +13,64 @@ document.addEventListener('DOMContentLoaded', function () {
           iframe.src = src;
           iframe.className = 'feature-iframe';
           iframe.title = slot.getAttribute('data-title') || 'Feature Widget';
-          iframe.setAttribute('loading', 'lazy');
           iframe.setAttribute('allowfullscreen', '');
+          iframe.addEventListener('load', function () {
+            autoSizeIframe(iframe);
+          });
           if (placeholder) {
             placeholder.replaceWith(iframe);
           } else {
             slot.appendChild(iframe);
           }
         }
-        // If not ok, placeholder remains ("Coming Soon")
       })
       .catch(function () {
-        // Network error or file not found — keep placeholder
       });
   });
+
+  function autoSizeIframe(iframe) {
+    let doc;
+    try {
+      doc = iframe.contentDocument || iframe.contentWindow.document;
+    } catch (e) {
+      return; // cross-origin — leave default height
+    }
+    if (!doc || !doc.body) return;
+
+    // Measure the actual content element rather than scrollHeight, which
+    // latches to the iframe's set height and prevents shrinking when
+    // collapsible sections (e.g. <details>) close.
+    function measure() {
+      const root = doc.querySelector('.svc-root') || doc.body.firstElementChild || doc.body;
+      const rect = root.getBoundingClientRect();
+      return Math.ceil(rect.bottom + 12); // small buffer absorbs sub-pixel rounding
+    }
+
+    let scheduled = false;
+    function resize() {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(function () {
+        scheduled = false;
+        iframe.style.height = measure() + 'px';
+      });
+    }
+
+    resize();
+
+    if ('ResizeObserver' in window) {
+      const ro = new ResizeObserver(resize);
+      ro.observe(doc.body);
+      const root = doc.querySelector('.svc-root');
+      if (root) ro.observe(root);
+    }
+    // <details> toggle and other DOM mutations inside the iframe
+    doc.addEventListener('toggle', resize, true);
+    window.addEventListener('resize', resize);
+
+    // Re-measure once webfonts inside the iframe finish loading (text reflow)
+    if (doc.fonts && doc.fonts.ready) {
+      doc.fonts.ready.then(resize);
+    }
+  }
 });
