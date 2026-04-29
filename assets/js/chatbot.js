@@ -150,6 +150,10 @@ ${ctx}`;
         const text = chatInput.value.trim();
         chatInput.value = '';
         autoResizeTextarea(chatInput);
+        // Close autocomplete immediately — programmatic .value = '' doesn't
+        // trigger 'input', so the dropdown would otherwise stay visible.
+        const acList = document.getElementById('chat-autocomplete');
+        if (acList) { acList.hidden = true; acList.innerHTML = ''; }
         await routeMessage(text);
       });
     }
