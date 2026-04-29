@@ -8,7 +8,10 @@
 window.ValthrChat = (function () {
 
   // ── API configuration ──────────────────────────────────────────────────────
-  const VALTHR_GEMINI_KEY = 'AIzaSyBnpLodKDyaNplskiDCKBGXYmCmK0NmM8A';
+  // Key is loaded from assets/data/config.js (gitignored) via window.VALTHR_CONFIG.
+  // If that file is absent the key defaults to an empty string, which will cause
+  // Gemini requests to fail immediately and flip the chatbot into fallback mode.
+  const VALTHR_GEMINI_KEY = (window.VALTHR_CONFIG && window.VALTHR_CONFIG.geminiKey) || '';
   const GEMINI_MODEL = 'gemini-2.5-flash';
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${VALTHR_GEMINI_KEY}`;
   const CACHE_URL = `https://generativelanguage.googleapis.com/v1beta/cachedContents?key=${VALTHR_GEMINI_KEY}`;
@@ -75,6 +78,37 @@ ${ctx}`;
     return null;
   }
 
+  function secsUntilMidnightPT() {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: false
+    }).formatToParts(new Date());
+    const h = parseInt(parts.find(p => p.type === 'hour').value) % 24;
+    const m = parseInt(parts.find(p => p.type === 'minute').value);
+    const s = parseInt(parts.find(p => p.type === 'second').value);
+    const elapsed = h * 3600 + m * 60 + s;
+    return elapsed === 0 ? 86400 : 86400 - elapsed;
+  }
+
+  function formatResetCountdown() {
+    const secs = secsUntilMidnightPT();
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    return secs < 60 ? '< 1m' : h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
+
+  function startQuotaTimer() {
+    function render() {
+      const el = document.getElementById('quota-reset-timer');
+      if (!el) return;
+      el.textContent = `quota resets in ${formatResetCountdown()}`;
+    }
+
+    render();
+    setInterval(render, 60000);
+  }
+
   function init() {
     const placeholder = document.getElementById('chat-placeholder');
     const container   = document.getElementById('chat-container');
@@ -86,6 +120,7 @@ ${ctx}`;
     cacheNamePromise = initCache(); // fire-and-forget; awaited before first send
     showChatInterface();
     wireControls();
+    startQuotaTimer();
   }
 
   function showChatInterface() {
@@ -212,6 +247,15 @@ ${ctx}`;
       }
 
       if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg = err.error?.message || `API error ${res.status}`;
+        const isQuota = res.status === 429
+          || msg.toLowerCase().includes('quota')
+          || msg.toLowerCase().includes('resource_exhausted')
+          || msg.toLowerCase().includes('rate limit');
+        appendMessage('error', isQuota
+          ? `API usage limit exceeded. Quota resets in ${formatResetCountdown()}.`
+          : `Error: ${msg}`);
         showTyping(false);
         // Roll back the just-appended user turn so the fallback path can re-render it cleanly.
         history.pop();

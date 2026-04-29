@@ -56,6 +56,8 @@
   <script src="assets/data/network.js"></script>
   <script src="assets/data/report-extract.js"></script>
   <script src="assets/data/qa.js"></script>
+  <!-- config.js holds the Gemini API key and is gitignored; chatbot falls back to Q&A if absent -->
+  <script src="assets/data/config.js"></script>
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="assets/css/main.css?v=4">
@@ -866,7 +868,7 @@
         Ask the Report
       </h2>
       <p class="section-subtitle mx-auto text-center">
-        Powered by Gemini 2.0 Flash, grounded exclusively in the Valthr research report.
+        Powered by Gemini 2.5 Flash, grounded exclusively in the Valthr research report.
       </p>
       <button id="chat-tour-btn" aria-label="Take a tour of the research assistant">
         <i data-lucide="compass"></i>
@@ -889,7 +891,7 @@
         <!-- Context banner + actions -->
         <div class="chat-context-banner">
           <span class="chat-context-label">Grounded in</span>
-          <span class="chat-context-text">Valthr Research Report — Drone Delivery at BAPCO &middot; 2024</span>
+          <span class="chat-context-text">Valthr Research Report — Drone Delivery at BAPCO &middot; 2026</span>
           <div class="chat-actions">
             <button class="chat-action-btn" id="chat-clear" aria-label="Reset chat history">Reset Chat</button>
           </div>
@@ -935,7 +937,7 @@
 
         <!-- Disclaimer -->
         <p class="chat-disclaimer" role="note">
-          Answers are based solely on the Valthr research report &nbsp;·&nbsp; Gemini 2.0 Flash &nbsp;·&nbsp; temperature 0.2
+          Answers are based solely on the Valthr research report &nbsp;·&nbsp; Gemini 2.5 Flash &nbsp;·&nbsp; temperature 0.2 &nbsp;·&nbsp; <span id="quota-reset-timer" title="Free tier quota resets at midnight Pacific Time"></span>
         </p>
 
       </div><!-- /chat-interface -->
@@ -1024,7 +1026,7 @@
       </div>
 
       <div class="footer-meta">
-        <p>Built with Leaflet.js + Gemini 2.0 Flash</p>
+        <p>Built with Leaflet.js + Gemini 2.5 Flash</p>
         <p>GitHub Pages &nbsp;·&nbsp; Static Site</p>
         <p style="margin-top:0.5rem">Group 01 — Valthr</p>
         <p>MSIN0068 Project Management</p>

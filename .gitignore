@@ -7,3 +7,6 @@ prompt.md
 
 # Developer notes
 claude/
+
+# Local site config — contains the Gemini API key; never commit
+assets/data/config.js
