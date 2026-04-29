@@ -1438,6 +1438,63 @@ a:hover { text-decoration: underline; }
   align-items: flex-end;
   flex-shrink: 0;
   padding-bottom: 0.25rem;
+  position: relative;
+}
+
+/* Autocomplete dropdown — appears above the input as user types */
+#chat-autocomplete {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 56px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  z-index: 20;
+}
+#chat-autocomplete[hidden] { display: none; }
+
+.chat-ac-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-dim);
+  padding: 0.625rem 0.875rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+  transition: background 0.12s;
+}
+.chat-ac-item:last-child { border-bottom: none; }
+.chat-ac-item:hover,
+.chat-ac-item.is-active { background: var(--bg-panel); }
+
+.chat-ac-item-cat {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-right: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--border-dim);
+  border-radius: 3px;
+}
+
+.chat-ac-item mark {
+  background: rgba(217, 119, 6, 0.18);
+  color: inherit;
+  padding: 0 1px;
+  border-radius: 2px;
+  font-weight: 500;
 }
 
 #chat-input {
