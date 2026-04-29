@@ -1,10 +1,17 @@
 // chatbot.js — Valthr AI Research Assistant
-// Depends on: window.REPORT_CONTEXT (from report-extract.js), marked.js (CDN)
+// Primary: Gemini 2.5 Flash, grounded in window.REPORT_CONTEXT (assets/data/report-extract.js).
+// Fallback: precomputed Q&A from window.VALTHR_QA (assets/data/qa.js) — engages when the
+// Gemini API is unreachable, rate-limited, or otherwise erroring, so users never see a
+// raw API error message.
+// Depends on: marked.js (CDN, optional).
 
 window.ValthrChat = (function () {
 
   // ── API configuration ──────────────────────────────────────────────────────
-  const VALTHR_GEMINI_KEY = 'AIzaSyBnpLodKDyaNplskiDCKBGXYmCmK0NmM8A';
+  // Key is loaded from assets/data/config.js (gitignored) via window.VALTHR_CONFIG.
+  // If that file is absent the key defaults to an empty string, which will cause
+  // Gemini requests to fail immediately and flip the chatbot into fallback mode.
+  const VALTHR_GEMINI_KEY = (window.VALTHR_CONFIG && window.VALTHR_CONFIG.geminiKey) || '';
   const GEMINI_MODEL = 'gemini-2.5-flash';
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${VALTHR_GEMINI_KEY}`;
   const CACHE_URL = `https://generativelanguage.googleapis.com/v1beta/cachedContents?key=${VALTHR_GEMINI_KEY}`;
@@ -14,6 +21,7 @@ window.ValthrChat = (function () {
   let systemPrompt = null;
   let isTyping = false;
   let cacheNamePromise = null;
+  let fallbackMode = false; // flips true on API failure; persists for the session
 
   function buildSystemPrompt() {
     const ctx = window.REPORT_CONTEXT || '[Report text not loaded]';
@@ -139,7 +147,7 @@ ${ctx}`;
         const text = chatInput.value.trim();
         chatInput.value = '';
         autoResizeTextarea(chatInput);
-        await sendMessage(text);
+        await routeMessage(text);
       });
     }
 
@@ -164,16 +172,34 @@ ${ctx}`;
       });
     }
 
-    document.querySelectorAll('.chat-suggestion-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        if (isTyping) return;
-        const text = chip.dataset.prompt || chip.textContent.trim();
-        sendMessage(text);
+    // Delegate so dynamically added chips (in fallback mode) work too.
+    const sugWrap = document.getElementById('chat-suggestions');
+    if (sugWrap) {
+      sugWrap.addEventListener('click', e => {
+        const chip = e.target.closest('.chat-suggestion-chip');
+        if (!chip || isTyping) return;
+        const qaId = chip.dataset.qaId;
+        const promptText = chip.dataset.prompt || chip.textContent.trim();
+        // In fallback mode, prefer the precomputed Q&A entry directly.
+        if (fallbackMode && qaId) {
+          const qa = findQAById(qaId);
+          if (qa) return renderPrecomputed(qa);
+        }
+        routeMessage(promptText, qaId);
       });
-    });
+    }
   }
 
-  async function sendMessage(userText) {
+  // ── Routing layer ──────────────────────────────────────────────────────────
+
+  async function routeMessage(userText, qaId) {
+    if (fallbackMode) return handleFallback(userText, qaId);
+    return sendMessage(userText, qaId);
+  }
+
+  // ── Gemini path ────────────────────────────────────────────────────────────
+
+  async function sendMessage(userText, qaId) {
     const sug = document.getElementById('chat-suggestions');
     if (sug) sug.classList.add('is-hidden');
 
@@ -229,7 +255,10 @@ ${ctx}`;
           ? `API usage limit exceeded. Quota resets in ${formatResetCountdown()}.`
           : `Error: ${msg}`);
         showTyping(false);
-        return;
+        // Roll back the just-appended user turn so the fallback path can re-render it cleanly.
+        history.pop();
+        rollbackLastUserBubble();
+        return enterFallbackMode(userText, qaId);
       }
 
       const data = await res.json();
@@ -241,8 +270,113 @@ ${ctx}`;
 
     } catch (err) {
       showTyping(false);
-      appendMessage('error', `Network error: ${err.message}. Please check your connection.`);
+      history.pop();
+      rollbackLastUserBubble();
+      return enterFallbackMode(userText, qaId);
     }
+  }
+
+  // ── Fallback path (precomputed Q&A) ────────────────────────────────────────
+
+  function enterFallbackMode(originalUserText, qaId) {
+    if (!fallbackMode) {
+      fallbackMode = true;
+      appendMessage('model',
+        '_AI chat is temporarily unavailable — switching to curated answers from the Valthr team. Pick any question below._'
+      );
+      ensureFullChipList();
+    }
+    return handleFallback(originalUserText, qaId);
+  }
+
+  function handleFallback(userText, qaId) {
+    const qa = (qaId && findQAById(qaId)) || matchQAByText(userText);
+
+    appendMessage('user', userText);
+    history.push({ role: 'user', parts: [{ text: userText }] });
+    showTyping(true);
+
+    const reply = qa
+      ? qa.answer
+      : "I can only answer the curated questions below while AI chat is unavailable. Pick one and I'll show the precomputed answer.";
+
+    const delay = computeTypingDelay(reply);
+    setTimeout(() => {
+      showTyping(false);
+      appendMessage('model', reply);
+      history.push({ role: 'model', parts: [{ text: reply }] });
+      const sug = document.getElementById('chat-suggestions');
+      if (sug) sug.classList.remove('is-hidden');
+    }, delay);
+  }
+
+  function renderPrecomputed(qa) {
+    const sug = document.getElementById('chat-suggestions');
+    if (sug) sug.classList.add('is-hidden');
+
+    appendMessage('user', qa.question);
+    history.push({ role: 'user', parts: [{ text: qa.question }] });
+    showTyping(true);
+    const delay = computeTypingDelay(qa.answer);
+    setTimeout(() => {
+      showTyping(false);
+      appendMessage('model', qa.answer);
+      history.push({ role: 'model', parts: [{ text: qa.answer }] });
+      if (sug) sug.classList.remove('is-hidden');
+    }, delay);
+  }
+
+  // Append any Q&A entries that aren't already represented as chips.
+  function ensureFullChipList() {
+    const list = document.querySelector('#chat-suggestions .chat-suggestions-list');
+    if (!list) return;
+    const items = window.VALTHR_QA || [];
+    const existingIds = new Set(
+      Array.from(list.querySelectorAll('.chat-suggestion-chip'))
+        .map(chip => chip.dataset.qaId)
+        .filter(Boolean)
+    );
+    items.forEach(qa => {
+      if (existingIds.has(qa.id)) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chat-suggestion-chip';
+      btn.dataset.qaId = qa.id;
+      btn.dataset.prompt = qa.question;
+      btn.textContent = qa.chip || qa.question;
+      list.appendChild(btn);
+    });
+    const sug = document.getElementById('chat-suggestions');
+    if (sug) sug.classList.remove('is-hidden');
+  }
+
+  function findQAById(id) {
+    return (window.VALTHR_QA || []).find(item => item.id === id) || null;
+  }
+
+  function matchQAByText(text) {
+    if (!text) return null;
+    const norm = s => (s || '').toLowerCase().trim();
+    const t = norm(text);
+    const items = window.VALTHR_QA || [];
+    return items.find(qa =>
+      norm(qa.question) === t ||
+      norm(qa.chip) === t
+    ) || null;
+  }
+
+  // ── UI helpers ─────────────────────────────────────────────────────────────
+
+  function rollbackLastUserBubble() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    const msgs = container.querySelectorAll('.chat-message.chat-user');
+    if (msgs.length) msgs[msgs.length - 1].remove();
+  }
+
+  function computeTypingDelay(text) {
+    const len = (text || '').length;
+    return Math.min(1400, 500 + Math.floor(len / 4));
   }
 
   function appendMessage(role, text) {
