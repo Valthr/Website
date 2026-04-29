@@ -135,6 +135,40 @@ ${ctx}`;
     }
   }
 
+  // ── Analytics logging ──────────────────────────────────────────────────────
+  // Posts each chat send to the Cloudflare Worker at window.VALTHR_CONFIG.logEndpoint.
+  // Silent no-op if the endpoint isn't configured. Failures never affect the UI.
+
+  const SESSION_KEY = 'valthr-session-id';
+
+  function getSessionId() {
+    try {
+      let id = sessionStorage.getItem(SESSION_KEY);
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random())).slice(0, 16);
+        sessionStorage.setItem(SESSION_KEY, id);
+      }
+      return id;
+    } catch (_) {
+      return 'no-session';
+    }
+  }
+
+  function logEvent(payload) {
+    const endpoint = window.VALTHR_CONFIG && window.VALTHR_CONFIG.logEndpoint;
+    if (!endpoint) return;
+    try {
+      const body = JSON.stringify({ ...payload, sessionId: getSessionId() });
+      // keepalive lets the request finish even if the page navigates away.
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    } catch (_) { /* never fail the UI on a logging error */ }
+  }
+
   function wireControls() {
     const chatForm  = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
@@ -213,6 +247,8 @@ ${ctx}`;
 
     appendMessage('user', userText);
     history.push({ role: 'user', parts: [{ text: userText }] });
+
+    logEvent({ question: userText, mode: 'gemini', matchId: qaId || null });
 
     showTyping(true);
 
@@ -300,15 +336,28 @@ ${ctx}`;
     // Direct chip click → exact precomputed answer.
     if (qaId) {
       const qa = findQAById(qaId);
-      if (qa) return renderFallbackAnswer(userText, qa.answer);
+      if (qa) {
+        logEvent({ question: userText, mode: 'fallback', matchId: qaId, matchChip: qa.chip, score: 1 });
+        return renderFallbackAnswer(userText, qa.answer);
+      }
     }
 
     // Free text → exact match first, then fuzzy classifier.
     const exact = matchQAByText(userText);
-    if (exact) return renderFallbackAnswer(userText, exact.answer);
+    if (exact) {
+      logEvent({ question: userText, mode: 'fallback', matchId: exact.id, matchChip: exact.chip, score: 1 });
+      return renderFallbackAnswer(userText, exact.answer);
+    }
 
     const cls = window.ValthrClassifier;
     const top = cls && cls.classify ? cls.classify(userText, { topN: 1 })[0] : null;
+    logEvent({
+      question: userText,
+      mode: 'fallback',
+      matchId: top ? top.qaId : null,
+      matchChip: top && top.qa ? top.qa.chip : null,
+      score: top ? top.score : null,
+    });
     if (top && top.qa) {
       const conf = cls.confidence(top.score);
       if (conf === 'high') {
@@ -344,6 +393,8 @@ ${ctx}`;
   function renderPrecomputed(qa) {
     const sug = document.getElementById('chat-suggestions');
     if (sug) sug.classList.add('is-hidden');
+
+    logEvent({ question: qa.question, mode: 'fallback', matchId: qa.id, matchChip: qa.chip, score: 1 });
 
     appendMessage('user', qa.question);
     history.push({ role: 'user', parts: [{ text: qa.question }] });
