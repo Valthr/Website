@@ -141,6 +141,7 @@ ${ctx}`;
     const clearBtn  = document.getElementById('chat-clear');
 
     wireAutocomplete(chatInput);
+    renderRandomChips();
 
     if (chatForm) {
       chatForm.addEventListener('submit', async (e) => {
@@ -168,6 +169,7 @@ ${ctx}`;
         history = [];
         const msgs = document.getElementById('chat-messages');
         if (msgs) msgs.innerHTML = '';
+        renderRandomChips();
         const sug = document.getElementById('chat-suggestions');
         if (sug) sug.classList.remove('is-hidden');
         showChatInterface();
@@ -284,9 +286,8 @@ ${ctx}`;
     if (!fallbackMode) {
       fallbackMode = true;
       appendMessage('model',
-        '_AI chat is temporarily unavailable — switching to curated answers from the Valthr team. Pick any question below._'
+        '_AI chat is temporarily unavailable — switching to curated answers from the Valthr team. Type any keyword to find one (e.g. "cost", "risk", "GPS"), or use the Reset button to see fresh suggestions._'
       );
-      ensureFullChipList();
     }
     return handleFallback(originalUserText, qaId);
   }
@@ -300,15 +301,13 @@ ${ctx}`;
 
     const reply = qa
       ? qa.answer
-      : "I can only answer the curated questions below while AI chat is unavailable. Pick one and I'll show the precomputed answer.";
+      : "I couldn't match that to a curated answer. Try typing a keyword (e.g. \"cost\", \"risk\", \"BCAA\") and pick from the autocomplete list.";
 
     const delay = computeTypingDelay(reply);
     setTimeout(() => {
       showTyping(false);
       appendMessage('model', reply);
       history.push({ role: 'model', parts: [{ text: reply }] });
-      const sug = document.getElementById('chat-suggestions');
-      if (sug) sug.classList.remove('is-hidden');
     }, delay);
   }
 
@@ -324,22 +323,27 @@ ${ctx}`;
       showTyping(false);
       appendMessage('model', qa.answer);
       history.push({ role: 'model', parts: [{ text: qa.answer }] });
-      if (sug) sug.classList.remove('is-hidden');
     }, delay);
   }
 
-  // Append any Q&A entries that aren't already represented as chips.
-  function ensureFullChipList() {
+  // Render up to 5 random Q&A entries as suggestion chips.
+  // Called once on init and again on Reset Chat — never after a message.
+  function renderRandomChips() {
     const list = document.querySelector('#chat-suggestions .chat-suggestions-list');
     if (!list) return;
     const items = window.VALTHR_QA || [];
-    const existingIds = new Set(
-      Array.from(list.querySelectorAll('.chat-suggestion-chip'))
-        .map(chip => chip.dataset.qaId)
-        .filter(Boolean)
-    );
-    items.forEach(qa => {
-      if (existingIds.has(qa.id)) return;
+    if (!items.length) return;
+
+    const pool = items.slice();
+    const picked = [];
+    const n = Math.min(5, pool.length);
+    while (picked.length < n) {
+      const idx = Math.floor(Math.random() * pool.length);
+      picked.push(pool.splice(idx, 1)[0]);
+    }
+
+    list.innerHTML = '';
+    picked.forEach(qa => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'chat-suggestion-chip';
@@ -348,8 +352,6 @@ ${ctx}`;
       btn.textContent = qa.chip || qa.question;
       list.appendChild(btn);
     });
-    const sug = document.getElementById('chat-suggestions');
-    if (sug) sug.classList.remove('is-hidden');
   }
 
   function findQAById(id) {
