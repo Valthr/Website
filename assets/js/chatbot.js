@@ -8,7 +8,10 @@
 window.ValthrChat = (function () {
 
   // ── API configuration ──────────────────────────────────────────────────────
-  const VALTHR_GEMINI_KEY = 'AIzaSyBnpLodKDyaNplskiDCKBGXYmCmK0NmM8A';
+  // Key is loaded from assets/data/config.js (gitignored) via window.VALTHR_CONFIG.
+  // If that file is absent the key defaults to an empty string, which will cause
+  // Gemini requests to fail immediately and flip the chatbot into fallback mode.
+  const VALTHR_GEMINI_KEY = (window.VALTHR_CONFIG && window.VALTHR_CONFIG.geminiKey) || '';
   const GEMINI_MODEL = 'gemini-2.5-flash';
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${VALTHR_GEMINI_KEY}`;
   const CACHE_URL = `https://generativelanguage.googleapis.com/v1beta/cachedContents?key=${VALTHR_GEMINI_KEY}`;
