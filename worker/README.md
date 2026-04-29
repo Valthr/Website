@@ -35,7 +35,8 @@ wrangler login
 
 # 2. From inside the worker/ directory, create the KV namespace
 cd worker
-wrangler kv:namespace create LOGS
+wrangler kv namespace create LOGS
+#   (older wrangler versions use the colon form: `wrangler kv:namespace create LOGS`)
 
 # 3. Paste the printed `id` into wrangler.toml under [[kv_namespaces]]
 #    (see the placeholder PASTE_KV_NAMESPACE_ID_HERE)
