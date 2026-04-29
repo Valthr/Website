@@ -1,13 +1,79 @@
-// chatbot.js — Valthr Research Assistant
-// Uses precomputed Q&A pairs grounded in the Valthr report.
-// Depends on: window.VALTHR_QA (assets/data/qa.js), marked.js (CDN, optional).
+// chatbot.js — Valthr AI Research Assistant
+// Primary: Gemini 2.5 Flash, grounded in window.REPORT_CONTEXT (assets/data/report-extract.js).
+// Fallback: precomputed Q&A from window.VALTHR_QA (assets/data/qa.js) — engages when the
+// Gemini API is unreachable, rate-limited, or otherwise erroring, so users never see a
+// raw API error message.
+// Depends on: marked.js (CDN, optional).
 
 window.ValthrChat = (function () {
 
-  let isTyping = false;
-  let history = []; // tracks transcript for the reset button only
+  // ── API configuration ──────────────────────────────────────────────────────
+  const VALTHR_GEMINI_KEY = 'AIzaSyBnpLodKDyaNplskiDCKBGXYmCmK0NmM8A';
+  const GEMINI_MODEL = 'gemini-2.5-flash';
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${VALTHR_GEMINI_KEY}`;
+  const CACHE_URL = `https://generativelanguage.googleapis.com/v1beta/cachedContents?key=${VALTHR_GEMINI_KEY}`;
+  const CACHE_STORAGE_KEY = 'valthr-gemini-cache-v1';
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
+  let history = [];
+  let systemPrompt = null;
+  let isTyping = false;
+  let cacheNamePromise = null;
+  let fallbackMode = false; // flips true on API failure; persists for the session
+
+  function buildSystemPrompt() {
+    const ctx = window.REPORT_CONTEXT || '[Report text not loaded]';
+    return `You are a research assistant for Valthr, an autonomous drone delivery service operating at the BAPCO industrial complex in Bahrain.
+
+You answer questions ONLY based on the research report provided below. If a question cannot be answered from the report, say clearly: "The report does not cover that topic."
+
+Keep answers concise, factual, and formatted in markdown where helpful. Do not speculate beyond the report's content.
+
+Temperature is set low (0.2) — stick closely to what the report says.
+
+---
+
+RESEARCH REPORT:
+
+${ctx}`;
+  }
+
+  // Attempts to create (or reuse) a Gemini context cache for the system prompt.
+  // Returns the cache name string on success, null on failure (graceful fallback).
+  async function initCache() {
+    try {
+      const stored = localStorage.getItem(CACHE_STORAGE_KEY);
+      if (stored) {
+        const { name, expireTime } = JSON.parse(stored);
+        // Reuse if more than 5 minutes remain before expiry
+        if (new Date(expireTime) > new Date(Date.now() + 5 * 60 * 1000)) {
+          return name;
+        }
+      }
+    } catch (_) {}
+
+    try {
+      const res = await fetch(CACHE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: `models/${GEMINI_MODEL}`,
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [],
+          ttl: '3600s'
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify({
+          name: data.name,
+          expireTime: data.expireTime
+        }));
+        return data.name;
+      }
+    } catch (_) {}
+
+    return null;
+  }
 
   function init() {
     const placeholder = document.getElementById('chat-placeholder');
@@ -16,7 +82,8 @@ window.ValthrChat = (function () {
     if (placeholder) placeholder.style.display = 'none';
     if (container) container.style.display = 'flex';
 
-    renderSuggestions();
+    systemPrompt = buildSystemPrompt();
+    cacheNamePromise = initCache(); // fire-and-forget; awaited before first send
     showChatInterface();
     wireControls();
   }
@@ -27,26 +94,10 @@ window.ValthrChat = (function () {
 
     if (history.length === 0) {
       appendMessage('model',
-        "Hello! I'm grounded in the Valthr research report on autonomous drone delivery at BAPCO.\n\n" +
-        "Pick one of the suggested questions below for a curated answer covering the routing algorithm, fleet, costs, risks, KPIs, contract terms and more."
+        'Hello! I\'m grounded in the Valthr research report on autonomous drone delivery at BAPCO.\n\n' +
+        'Ask me about the routing algorithm, fleet optimisation, delivery network, cost analysis, or any other topic covered in the report.'
       );
     }
-  }
-
-  function renderSuggestions() {
-    const list = document.querySelector('#chat-suggestions .chat-suggestions-list');
-    if (!list) return;
-
-    const items = window.VALTHR_QA || [];
-    list.innerHTML = '';
-    items.forEach(qa => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'chat-suggestion-chip';
-      btn.dataset.qaId = qa.id;
-      btn.textContent = qa.chip || qa.question;
-      list.appendChild(btn);
-    });
   }
 
   function wireControls() {
@@ -55,13 +106,13 @@ window.ValthrChat = (function () {
     const clearBtn  = document.getElementById('chat-clear');
 
     if (chatForm) {
-      chatForm.addEventListener('submit', e => {
+      chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!chatInput || !chatInput.value.trim() || isTyping) return;
         const text = chatInput.value.trim();
         chatInput.value = '';
         autoResizeTextarea(chatInput);
-        handleFreeText(text);
+        await routeMessage(text);
       });
     }
 
@@ -86,69 +137,200 @@ window.ValthrChat = (function () {
       });
     }
 
-    // Delegate so dynamically rendered chips work too.
+    // Delegate so dynamically added chips (in fallback mode) work too.
     const sugWrap = document.getElementById('chat-suggestions');
     if (sugWrap) {
       sugWrap.addEventListener('click', e => {
         const chip = e.target.closest('.chat-suggestion-chip');
         if (!chip || isTyping) return;
-        const qa = (window.VALTHR_QA || []).find(item => item.id === chip.dataset.qaId);
-        if (!qa) return;
-        answerWith(qa);
+        const qaId = chip.dataset.qaId;
+        const promptText = chip.dataset.prompt || chip.textContent.trim();
+        // In fallback mode, prefer the precomputed Q&A entry directly.
+        if (fallbackMode && qaId) {
+          const qa = findQAById(qaId);
+          if (qa) return renderPrecomputed(qa);
+        }
+        routeMessage(promptText, qaId);
       });
     }
   }
 
-  // ── Conversation handlers ──────────────────────────────────────────────────
+  // ── Routing layer ──────────────────────────────────────────────────────────
 
-  function answerWith(qa) {
+  async function routeMessage(userText, qaId) {
+    if (fallbackMode) return handleFallback(userText, qaId);
+    return sendMessage(userText, qaId);
+  }
+
+  // ── Gemini path ────────────────────────────────────────────────────────────
+
+  async function sendMessage(userText, qaId) {
+    const sug = document.getElementById('chat-suggestions');
+    if (sug) sug.classList.add('is-hidden');
+
+    appendMessage('user', userText);
+    history.push({ role: 'user', parts: [{ text: userText }] });
+
+    showTyping(true);
+
+    const cacheName = await cacheNamePromise;
+
+    const payload = cacheName
+      ? { cachedContent: cacheName, contents: history, generationConfig: { temperature: 0.2, maxOutputTokens: 1024 } }
+      : { system_instruction: { parts: [{ text: systemPrompt }] }, contents: history, generationConfig: { temperature: 0.2, maxOutputTokens: 1024 } };
+
+    try {
+      const res = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      // Cache may have expired mid-session — invalidate and retry inline
+      if (!res.ok && cacheName && (res.status === 404 || res.status === 400)) {
+        localStorage.removeItem(CACHE_STORAGE_KEY);
+        cacheNamePromise = initCache();
+        const fallback = await fetch(GEMINI_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: history,
+            generationConfig: { temperature: 0.2, maxOutputTokens: 1024 }
+          })
+        });
+        if (fallback.ok) {
+          const fd = await fallback.json();
+          const fr = fd.candidates?.[0]?.content?.parts?.[0]?.text || '(No response received)';
+          history.push({ role: 'model', parts: [{ text: fr }] });
+          showTyping(false);
+          appendMessage('model', fr);
+          return;
+        }
+      }
+
+      if (!res.ok) {
+        showTyping(false);
+        // Roll back the just-appended user turn so the fallback path can re-render it cleanly.
+        history.pop();
+        rollbackLastUserBubble();
+        return enterFallbackMode(userText, qaId);
+      }
+
+      const data = await res.json();
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '(No response received)';
+
+      history.push({ role: 'model', parts: [{ text: reply }] });
+      showTyping(false);
+      appendMessage('model', reply);
+
+    } catch (err) {
+      showTyping(false);
+      history.pop();
+      rollbackLastUserBubble();
+      return enterFallbackMode(userText, qaId);
+    }
+  }
+
+  // ── Fallback path (precomputed Q&A) ────────────────────────────────────────
+
+  function enterFallbackMode(originalUserText, qaId) {
+    if (!fallbackMode) {
+      fallbackMode = true;
+      appendMessage('model',
+        '_AI chat is temporarily unavailable — switching to curated answers from the Valthr team. Pick any question below._'
+      );
+      ensureFullChipList();
+    }
+    return handleFallback(originalUserText, qaId);
+  }
+
+  function handleFallback(userText, qaId) {
+    const qa = (qaId && findQAById(qaId)) || matchQAByText(userText);
+
+    appendMessage('user', userText);
+    history.push({ role: 'user', parts: [{ text: userText }] });
+    showTyping(true);
+
+    const reply = qa
+      ? qa.answer
+      : "I can only answer the curated questions below while AI chat is unavailable. Pick one and I'll show the precomputed answer.";
+
+    const delay = computeTypingDelay(reply);
+    setTimeout(() => {
+      showTyping(false);
+      appendMessage('model', reply);
+      history.push({ role: 'model', parts: [{ text: reply }] });
+      const sug = document.getElementById('chat-suggestions');
+      if (sug) sug.classList.remove('is-hidden');
+    }, delay);
+  }
+
+  function renderPrecomputed(qa) {
     const sug = document.getElementById('chat-suggestions');
     if (sug) sug.classList.add('is-hidden');
 
     appendMessage('user', qa.question);
-    history.push({ role: 'user', text: qa.question });
-
+    history.push({ role: 'user', parts: [{ text: qa.question }] });
     showTyping(true);
     const delay = computeTypingDelay(qa.answer);
     setTimeout(() => {
       showTyping(false);
       appendMessage('model', qa.answer);
-      history.push({ role: 'model', text: qa.answer });
-      revealSuggestionsAfterReply();
+      history.push({ role: 'model', parts: [{ text: qa.answer }] });
+      if (sug) sug.classList.remove('is-hidden');
     }, delay);
   }
 
-  function handleFreeText(text) {
-    appendMessage('user', text);
-    history.push({ role: 'user', text });
-
-    showTyping(true);
-    setTimeout(() => {
-      showTyping(false);
-      const fallback =
-        "I can only answer from a curated set of questions about the Valthr research report. " +
-        "Pick one of the suggestions below — they cover the routing algorithm, fleet design, costs, risks, KPIs, contract terms, and more.";
-      appendMessage('model', fallback);
-      history.push({ role: 'model', text: fallback });
-
-      const sug = document.getElementById('chat-suggestions');
-      if (sug) {
-        sug.classList.remove('is-hidden');
-        sug.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }, 600);
-  }
-
-  function revealSuggestionsAfterReply() {
-    // Re-show chips after each curated answer so users can ask another.
+  // Append any Q&A entries that aren't already represented as chips.
+  function ensureFullChipList() {
+    const list = document.querySelector('#chat-suggestions .chat-suggestions-list');
+    if (!list) return;
+    const items = window.VALTHR_QA || [];
+    const existingIds = new Set(
+      Array.from(list.querySelectorAll('.chat-suggestion-chip'))
+        .map(chip => chip.dataset.qaId)
+        .filter(Boolean)
+    );
+    items.forEach(qa => {
+      if (existingIds.has(qa.id)) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chat-suggestion-chip';
+      btn.dataset.qaId = qa.id;
+      btn.dataset.prompt = qa.question;
+      btn.textContent = qa.chip || qa.question;
+      list.appendChild(btn);
+    });
     const sug = document.getElementById('chat-suggestions');
     if (sug) sug.classList.remove('is-hidden');
   }
 
+  function findQAById(id) {
+    return (window.VALTHR_QA || []).find(item => item.id === id) || null;
+  }
+
+  function matchQAByText(text) {
+    if (!text) return null;
+    const norm = s => (s || '').toLowerCase().trim();
+    const t = norm(text);
+    const items = window.VALTHR_QA || [];
+    return items.find(qa =>
+      norm(qa.question) === t ||
+      norm(qa.chip) === t
+    ) || null;
+  }
+
   // ── UI helpers ─────────────────────────────────────────────────────────────
 
+  function rollbackLastUserBubble() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    const msgs = container.querySelectorAll('.chat-message.chat-user');
+    if (msgs.length) msgs[msgs.length - 1].remove();
+  }
+
   function computeTypingDelay(text) {
-    // Feels live without being annoying — between 500ms and 1400ms.
     const len = (text || '').length;
     return Math.min(1400, 500 + Math.floor(len / 4));
   }
@@ -163,10 +345,14 @@ window.ValthrChat = (function () {
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble';
 
-    if (window.marked) {
-      bubble.innerHTML = window.marked.parse(text, { breaks: true });
+    if (role === 'error') {
+      bubble.innerHTML = `<span class="chat-error-icon">⚠</span> ${escapeHtml(text)}`;
     } else {
-      bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+      if (window.marked) {
+        bubble.innerHTML = window.marked.parse(text, { breaks: true });
+      } else {
+        bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+      }
     }
 
     div.appendChild(bubble);
