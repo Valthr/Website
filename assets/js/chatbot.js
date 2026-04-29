@@ -70,6 +70,37 @@ ${ctx}`;
     return null;
   }
 
+  function startQuotaTimer() {
+    function secsUntilMidnightPT() {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles',
+        hour: 'numeric', minute: 'numeric', second: 'numeric',
+        hour12: false
+      }).formatToParts(new Date());
+      const h = parseInt(parts.find(p => p.type === 'hour').value) % 24;
+      const m = parseInt(parts.find(p => p.type === 'minute').value);
+      const s = parseInt(parts.find(p => p.type === 'second').value);
+      const elapsed = h * 3600 + m * 60 + s;
+      return elapsed === 0 ? 86400 : 86400 - elapsed;
+    }
+
+    function render() {
+      const el = document.getElementById('quota-reset-timer');
+      if (!el) return;
+      const secs = secsUntilMidnightPT();
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      el.textContent = secs < 60
+        ? 'quota resets in < 1m'
+        : h > 0
+          ? `quota resets in ${h}h ${m}m`
+          : `quota resets in ${m}m`;
+    }
+
+    render();
+    setInterval(render, 60000);
+  }
+
   function init() {
     const placeholder = document.getElementById('chat-placeholder');
     const container   = document.getElementById('chat-container');
@@ -81,6 +112,7 @@ ${ctx}`;
     cacheNamePromise = initCache(); // fire-and-forget; awaited before first send
     showChatInterface();
     wireControls();
+    startQuotaTimer();
   }
 
   function showChatInterface() {
