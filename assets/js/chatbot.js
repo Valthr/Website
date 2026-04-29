@@ -70,31 +70,31 @@ ${ctx}`;
     return null;
   }
 
-  function startQuotaTimer() {
-    function secsUntilMidnightPT() {
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Los_Angeles',
-        hour: 'numeric', minute: 'numeric', second: 'numeric',
-        hour12: false
-      }).formatToParts(new Date());
-      const h = parseInt(parts.find(p => p.type === 'hour').value) % 24;
-      const m = parseInt(parts.find(p => p.type === 'minute').value);
-      const s = parseInt(parts.find(p => p.type === 'second').value);
-      const elapsed = h * 3600 + m * 60 + s;
-      return elapsed === 0 ? 86400 : 86400 - elapsed;
-    }
+  function secsUntilMidnightPT() {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: false
+    }).formatToParts(new Date());
+    const h = parseInt(parts.find(p => p.type === 'hour').value) % 24;
+    const m = parseInt(parts.find(p => p.type === 'minute').value);
+    const s = parseInt(parts.find(p => p.type === 'second').value);
+    const elapsed = h * 3600 + m * 60 + s;
+    return elapsed === 0 ? 86400 : 86400 - elapsed;
+  }
 
+  function formatResetCountdown() {
+    const secs = secsUntilMidnightPT();
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    return secs < 60 ? '< 1m' : h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
+
+  function startQuotaTimer() {
     function render() {
       const el = document.getElementById('quota-reset-timer');
       if (!el) return;
-      const secs = secsUntilMidnightPT();
-      const h = Math.floor(secs / 3600);
-      const m = Math.floor((secs % 3600) / 60);
-      el.textContent = secs < 60
-        ? 'quota resets in < 1m'
-        : h > 0
-          ? `quota resets in ${h}h ${m}m`
-          : `quota resets in ${m}m`;
+      el.textContent = `quota resets in ${formatResetCountdown()}`;
     }
 
     render();
@@ -226,7 +226,7 @@ ${ctx}`;
           || msg.toLowerCase().includes('resource_exhausted')
           || msg.toLowerCase().includes('rate limit');
         appendMessage('error', isQuota
-          ? 'API quota exceeded. To fix: go to aistudio.google.com → your API key → enable billing, or create a new key in a fresh project to reset the free tier. The chatbot will work again once billing is enabled.'
+          ? `API usage limit exceeded. Quota resets in ${formatResetCountdown()}.`
           : `Error: ${msg}`);
         showTyping(false);
         return;
