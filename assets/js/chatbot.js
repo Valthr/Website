@@ -150,6 +150,10 @@ ${ctx}`;
         const text = chatInput.value.trim();
         chatInput.value = '';
         autoResizeTextarea(chatInput);
+        // Close autocomplete immediately — programmatic .value = '' doesn't
+        // trigger 'input', so the dropdown would otherwise stay visible.
+        const acList = document.getElementById('chat-autocomplete');
+        if (acList) { acList.hidden = true; acList.innerHTML = ''; }
         await routeMessage(text);
       });
     }
@@ -293,16 +297,42 @@ ${ctx}`;
   }
 
   function handleFallback(userText, qaId) {
-    const qa = (qaId && findQAById(qaId)) || matchQAByText(userText);
+    // Direct chip click → exact precomputed answer.
+    if (qaId) {
+      const qa = findQAById(qaId);
+      if (qa) return renderFallbackAnswer(userText, qa.answer);
+    }
 
+    // Free text → exact match first, then fuzzy classifier.
+    const exact = matchQAByText(userText);
+    if (exact) return renderFallbackAnswer(userText, exact.answer);
+
+    const cls = window.ValthrClassifier;
+    const top = cls && cls.classify ? cls.classify(userText, { topN: 1 })[0] : null;
+    if (top && top.qa) {
+      const conf = cls.confidence(top.score);
+      if (conf === 'high') {
+        return renderFallbackAnswer(userText,
+          `_Closest match in the report — **${top.qa.chip}**_\n\n${top.qa.answer}`);
+      }
+      if (conf === 'medium') {
+        return renderFallbackAnswer(userText,
+          `_This might be related — **${top.qa.chip}**_\n\n${top.qa.answer}\n\n*If this isn't what you meant, try the autocomplete suggestions._`);
+      }
+      if (conf === 'weak') {
+        return renderFallbackAnswer(userText,
+          `_I'm not sure I have a great match — closest in the report is **${top.qa.chip}**_\n\n${top.qa.answer}\n\n*If this isn't what you meant, try a keyword like "cost", "risk", "fleet", or "regulations" and pick from autocomplete._`);
+      }
+    }
+
+    return renderFallbackAnswer(userText,
+      "I couldn't find anything in the report that matches that. The chat is grounded in the Valthr research report — try a keyword like \"cost\", \"risk\", \"fleet\", \"BCAA\", or \"routing\" and pick from the autocomplete list.");
+  }
+
+  function renderFallbackAnswer(userText, reply) {
     appendMessage('user', userText);
     history.push({ role: 'user', parts: [{ text: userText }] });
     showTyping(true);
-
-    const reply = qa
-      ? qa.answer
-      : "I couldn't match that to a curated answer. Try typing a keyword (e.g. \"cost\", \"risk\", \"BCAA\") and pick from the autocomplete list.";
-
     const delay = computeTypingDelay(reply);
     setTimeout(() => {
       showTyping(false);
