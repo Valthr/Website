@@ -15,5 +15,5 @@ window.VALTHR_CONFIG = {
   // Deploy the Worker in worker/ (see worker/README.md) and paste the resulting URL.
   // If this field is missing or empty, no logging happens — the chatbot works as normal.
   // Example: 'https://valthr-chat-logger.your-subdomain.workers.dev/log'
-  logEndpoint: ''
+  logEndpoint: 'https://valthr-chat-logger.aquavbr.workers.dev/log'
 };

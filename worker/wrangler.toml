@@ -8,7 +8,7 @@ compatibility_date = "2026-04-01"
 # ─────────────────────────────────────────────────────────────────────────────
 [[kv_namespaces]]
 binding = "LOGS"
-id = "PASTE_KV_NAMESPACE_ID_HERE"
+id = "9d682a399f2f428a86976f2c95d94342"
 
 # Optional: pin to your CF account if `wrangler login` resolves multiple.
 # account_id = "your-cloudflare-account-id"
