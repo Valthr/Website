@@ -4,14 +4,16 @@
 window.ValthrChat = (function () {
 
   // ── API configuration ──────────────────────────────────────────────────────
-  // TODO: Replace with your Gemini API key before deploying
-  const VALTHR_GEMINI_KEY = 'AIzaSyD0BtkfnvJFsmc25UJwCIVrC-XfiPetq2g';
-  const GEMINI_MODEL = 'gemini-2.0-flash-lite';
+  const VALTHR_GEMINI_KEY = 'AIzaSyBnpLodKDyaNplskiDCKBGXYmCmK0NmM8A';
+  const GEMINI_MODEL = 'gemini-2.5-flash';
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${VALTHR_GEMINI_KEY}`;
+  const CACHE_URL = `https://generativelanguage.googleapis.com/v1beta/cachedContents?key=${VALTHR_GEMINI_KEY}`;
+  const CACHE_STORAGE_KEY = 'valthr-gemini-cache-v1';
 
-  let history = []; // [{role: 'user'|'model', parts: [{text}]}]
+  let history = [];
   let systemPrompt = null;
   let isTyping = false;
+  let cacheNamePromise = null;
 
   function buildSystemPrompt() {
     const ctx = window.REPORT_CONTEXT || '[Report text not loaded]';
@@ -30,6 +32,44 @@ RESEARCH REPORT:
 ${ctx}`;
   }
 
+  // Attempts to create (or reuse) a Gemini context cache for the system prompt.
+  // Returns the cache name string on success, null on failure (graceful fallback).
+  async function initCache() {
+    try {
+      const stored = localStorage.getItem(CACHE_STORAGE_KEY);
+      if (stored) {
+        const { name, expireTime } = JSON.parse(stored);
+        // Reuse if more than 5 minutes remain before expiry
+        if (new Date(expireTime) > new Date(Date.now() + 5 * 60 * 1000)) {
+          return name;
+        }
+      }
+    } catch (_) {}
+
+    try {
+      const res = await fetch(CACHE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: `models/${GEMINI_MODEL}`,
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [],
+          ttl: '3600s'
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify({
+          name: data.name,
+          expireTime: data.expireTime
+        }));
+        return data.name;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   function init() {
     const placeholder = document.getElementById('chat-placeholder');
     const container   = document.getElementById('chat-container');
@@ -38,6 +78,7 @@ ${ctx}`;
     if (container) container.style.display = 'flex';
 
     systemPrompt = buildSystemPrompt();
+    cacheNamePromise = initCache(); // fire-and-forget; awaited before first send
     showChatInterface();
     wireControls();
   }
@@ -109,14 +150,11 @@ ${ctx}`;
 
     showTyping(true);
 
-    const payload = {
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: history,
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 1024
-      }
-    };
+    const cacheName = await cacheNamePromise;
+
+    const payload = cacheName
+      ? { cachedContent: cacheName, contents: history, generationConfig: { temperature: 0.2, maxOutputTokens: 1024 } }
+      : { system_instruction: { parts: [{ text: systemPrompt }] }, contents: history, generationConfig: { temperature: 0.2, maxOutputTokens: 1024 } };
 
     try {
       const res = await fetch(GEMINI_URL, {
@@ -125,6 +163,29 @@ ${ctx}`;
         body: JSON.stringify(payload)
       });
 
+      // Cache may have expired mid-session — invalidate and retry inline
+      if (!res.ok && cacheName && (res.status === 404 || res.status === 400)) {
+        localStorage.removeItem(CACHE_STORAGE_KEY);
+        cacheNamePromise = initCache();
+        const fallback = await fetch(GEMINI_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: history,
+            generationConfig: { temperature: 0.2, maxOutputTokens: 1024 }
+          })
+        });
+        if (fallback.ok) {
+          const fd = await fallback.json();
+          const fr = fd.candidates?.[0]?.content?.parts?.[0]?.text || '(No response received)';
+          history.push({ role: 'model', parts: [{ text: fr }] });
+          showTyping(false);
+          appendMessage('model', fr);
+          return;
+        }
+      }
+
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         const msg = err.error?.message || `API error ${res.status}`;
@@ -132,10 +193,9 @@ ${ctx}`;
           || msg.toLowerCase().includes('quota')
           || msg.toLowerCase().includes('resource_exhausted')
           || msg.toLowerCase().includes('rate limit');
-        const userMsg = isQuota
+        appendMessage('error', isQuota
           ? 'API quota exceeded. To fix: go to aistudio.google.com → your API key → enable billing, or create a new key in a fresh project to reset the free tier. The chatbot will work again once billing is enabled.'
-          : `Error: ${msg}`;
-        appendMessage('error', userMsg);
+          : `Error: ${msg}`);
         showTyping(false);
         return;
       }
