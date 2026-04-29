@@ -1,9 +1,8 @@
 // qa.js — Precomputed Q&A pairs for the Valthr research assistant.
-// Answers are grounded in the Valthr Group Report (assets/GROUP_01_Drone Delivery.pdf) and general knowledge.
+// Answers are grounded in the Valthr Group Report and general knowledge.
 // See assets/js/chatbot.js + assets/js/classifier.js for consumers.
 //
-// Total entries: 392. Used as the autocomplete bank, the Gemini fallback bank,
-// and the source corpus for the local TF-IDF classifier.
+// Total entries: 512.
 
 window.VALTHR_QA = [
 
@@ -5002,6 +5001,1166 @@ The classifier and autocomplete need no changes. The repo is on GitHub at Valthr
     chip: "National digital transformation agenda",
     question: "What is \"Bahrain's digital transformation\" agenda?",
     answer: `Bahrain's digital transformation agenda refers to the Kingdom's national push to modernize government services, industry, and infrastructure through cloud, AI, IoT, and automation — aligned with Bahrain Economic Vision 2030. The country was an early GCC adopter of "cloud-first" policy and hosts major hyperscaler regions. Industrial operators such as BAPCO reference this agenda when adopting digital twins, advanced analytics, robotic inspection, and drone-based monitoring as part of modernization. Specific program details are best confirmed via official Bahraini government sources.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-battery-temperature",
+    category: "Drones",
+    chip: "Temperature impact on LiPo battery performance",
+    question: "How does temperature affect drone batteries?",
+    answer: `Drone LiPo batteries are highly temperature-sensitive: cold reduces ion mobility, cutting available capacity and voltage sag tolerance, while heat accelerates chemical degradation and raises swelling/fire risk. Most industrial drone batteries operate optimally between **20-30°C**; below 5°C flight times can drop 30-50%, and above 40°C cell wear accelerates significantly. Operators typically pre-warm batteries in cold climates and cool them between flights in hot ones like Bahrain. Battery management systems (BMS) report cell temperature telemetry to the flight controller, which may abort takeoff if thresholds are exceeded.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-humidity-handling",
+    category: "Drones",
+    chip: "Humidity effects on drone electronics and sensors",
+    question: "How do drones handle high humidity?",
+    answer: `High humidity risks **condensation** on circuit boards, lens fogging on cameras, and corrosion of exposed connectors over time. Industrial drones often have conformal-coated PCBs and IP-rated enclosures (e.g., IP43-IP55) to resist moisture ingress. Sudden temperature swings - common when moving a cool drone into Bahrain's humid coastal air - can fog optics and degrade obstacle-avoidance sensor accuracy. Operators acclimatise equipment, use desiccant packs in storage cases, and inspect for corrosion during preventive maintenance cycles.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-wind-tolerance",
+    category: "Drones",
+    chip: "Typical wind speed limits for industrial drones",
+    question: "What wind speeds can typical industrial drones handle?",
+    answer: `Most industrial multirotors are rated for sustained winds of **10-12 m/s (~22-27 mph)**, with higher-end platforms like the DJI Matrice 350 RTK tolerating up to 15 m/s. Gusts can exceed sustained values by 50%, so operators apply safety margins below the manufacturer ceiling. Wind drains battery faster as motors compensate to hold position, reducing effective flight time. Fixed-wing and VTOL drones generally handle higher winds than quadcopters due to aerodynamic lift, and flight controllers log wind estimation from IMU/GPS drift for risk assessment.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-rain-fog-handling",
+    category: "Drones",
+    chip: "Drone performance in precipitation and fog",
+    question: "How do drones handle rain or fog?",
+    answer: `Standard consumer drones are not weather-sealed and should not fly in rain; industrial models with **IP54-IP55 ratings** can handle light rain but not heavy downpours. Fog scatters light, degrading optical cameras, LiDAR returns, and visual obstacle avoidance, while moisture can short electronics if seals are compromised. Radar and thermal sensors penetrate fog better than RGB cameras, which is why some inspection drones combine modalities. Regulators in many jurisdictions also require **VLOS** (visual line of sight), which fog physically prevents, grounding most missions regardless of hardware capability.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-heat-electronics",
+    category: "Drones",
+    chip: "Why heat degrades drone electronic components",
+    question: "Why does heat affect electronics in industrial drones?",
+    answer: `Semiconductors leak more current at high temperatures, increasing power draw and self-heating in a feedback loop that can cause thermal throttling or shutdown. Flight controllers, ESCs, and onboard compute (e.g., NVIDIA Jetson modules) typically derate performance above **70-85°C junction temperature**. In Bahrain's summer, ambient air at 45°C leaves little headroom for passive cooling, so airflow from props is critical and ground idling should be minimised. Solder joints and capacitor electrolytes also age faster under heat, shortening MTBF for fleet operators.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-sandstorm-dust",
+    category: "Drones",
+    chip: "Drone operations in sandstorms and dust events",
+    question: "How do drones handle sandstorms / dust events?",
+    answer: `Sand and dust are abrasive and conductive when fine, posing risks to motor bearings, gimbal mechanics, and unsealed electronics - particularly relevant during Bahrain's *shamal* wind events. Most industrial drones lack IP6X dust-tight ratings, so operators ground fleets when visibility drops or PM10 levels spike. Dust also coats camera lenses and IR sensors, degrading inspection data quality, and reduces GPS signal reliability through atmospheric scattering. Post-event maintenance includes compressed-air cleaning of motors, airframe inspection, and lens recalibration before the next sortie.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-icing",
+    category: "Drones",
+    chip: "Ice accretion on drone airframes and propellers",
+    question: "What is \"icing\" on a drone?",
+    answer: `Icing is the accretion of ice on rotor blades, airframe surfaces, or pitot/sensor probes when flying through supercooled water droplets at sub-zero temperatures. It disrupts blade aerodynamics, adds asymmetric weight, and can rapidly cause loss of lift and control - a major hazard for Arctic or high-altitude operations. While **largely irrelevant in Bahrain** (temperatures rarely approach freezing), it matters for global fleet platforms that may include anti-icing coatings or heated rotors. Detection typically uses temperature plus humidity sensors with predictive flight envelope adjustments.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-environmental-sensors",
+    category: "Drones",
+    chip: "Onboard sensors that monitor environmental conditions",
+    question: "What environmental sensors do drones carry?",
+    answer: `Industrial drones carry a **barometer** (altitude/pressure), **IMU with thermometers** (attitude and internal temperature), **GPS/GNSS** (position), and often a magnetometer (heading). Higher-end platforms add humidity sensors, external air temperature probes, and wind estimators derived from motor RPM and tilt fusion. Mission-specific payloads can include gas sensors (methane, H2S), particulate matter sensors, and radiation detectors for industrial inspection. Sensor fusion in the flight controller (e.g., **EKF**) combines these streams to maintain stable flight despite environmental noise.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-operating-temperature",
+    category: "Drones",
+    chip: "Manufacturer-rated operating temperature ranges",
+    question: "What is the operating temperature range for typical industrial drones?",
+    answer: `Most industrial drones specify an operating range of **-20°C to +50°C**, with platforms like the DJI Matrice 350 RTK rated -20°C to +50°C and Skydio X10 similar. Bahrain's summer ground temperatures can exceed 50°C, pushing fleets to fly at dawn/dusk or restrict midday flights to avoid exceeding the envelope. Operating outside the range voids warranty and risks battery thermal runaway, motor demagnetisation, or LCD/sensor failure. Operators typically log ambient temperature against flight metadata to correlate failures during root-cause analysis.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "af-air-density",
+    category: "Drones",
+    chip: "Air density effects on lift, thrust, and endurance",
+    question: "How does air density affect drone flight performance?",
+    answer: `Lift and thrust are proportional to air density (**ρ**), so hot, humid, or high-altitude air reduces both, forcing motors to spin faster and draining batteries quicker. A 40°C day in Bahrain has roughly 10-12% lower density than ISA standard (15°C), translating to measurable payload and endurance reductions. Drones compensate via higher RPM, but this raises motor temperature and current draw, reducing safety margins. Mission planners use **density altitude** calculations - factoring temperature, pressure, and humidity - to validate flight envelopes before takeoff.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ag-predictive-maintenance",
+    category: "AI",
+    chip: "Predictive maintenance",
+    question: "What is predictive maintenance?",
+    answer: `**Predictive maintenance (PdM)** uses sensor data and ML models to forecast equipment failures *before* they occur, replacing fixed-interval servicing. Models ingest vibration, temperature, current, and acoustic streams, then output a remaining useful life (RUL) estimate or failure probability. Compared to reactive or preventive strategies, PdM cuts unplanned downtime and over-maintenance costs. Typical stacks combine edge inference with cloud-side retraining. *General knowledge.*`
+  },
+
+  {
+    id: "ag-condition-based-monitoring",
+    category: "AI",
+    chip: "Condition-based monitoring (CBM)",
+    question: "What is condition-based monitoring?",
+    answer: `**Condition-based monitoring (CBM)** continuously evaluates an asset's real-time state via sensors and triggers maintenance only when measured indicators cross thresholds. Unlike PdM's forecast horizon, CBM reacts to *current* condition (e.g., bearing vibration RMS > 4.5 mm/s). It's often the data-collection substrate on which predictive models are later layered. CBM is a building block of IR4 smart-factory architectures. *General knowledge.*`
+  },
+
+  {
+    id: "ag-ai-sensor-patterns",
+    category: "AI",
+    chip: "AI detecting unusual sensor patterns",
+    question: "How does AI detect unusual sensor patterns?",
+    answer: `AI learns a baseline of "normal" multivariate sensor behavior using techniques like autoencoders, isolation forests, or LSTM forecasters, then flags deviations from the reconstruction or prediction. Statistical residuals, Mahalanobis distance, or learned likelihood scores quantify how anomalous a window is. Drift detection (ADWIN, Page-Hinkley) handles slow regime shifts. Thresholds are tuned against labeled fault history or via extreme value theory. *General knowledge.*`
+  },
+
+  {
+    id: "ag-anomaly-detection-industrial",
+    category: "AI",
+    chip: "Anomaly detection in industrial systems",
+    question: "What is anomaly detection in industrial systems?",
+    answer: `**Industrial anomaly detection** identifies rare deviations in process telemetry that may signal faults, leaks, cyber-intrusions, or quality defects. Approaches range from unsupervised (one-class SVM, VAE) to semi-supervised models trained only on healthy data, since labeled failures are scarce. Outputs feed alarms, root-cause analysis, or automated shutdown logic. Class imbalance and concept drift are the dominant practical challenges. *General knowledge.*`
+  },
+
+  {
+    id: "ag-digital-twin",
+    category: "AI",
+    chip: "Digital twin in industrial AI",
+    question: "What is a digital twin (in industrial AI)?",
+    answer: `A **digital twin** is a live, data-driven virtual replica of a physical asset, process, or plant, synchronized via IIoT telemetry. Hybrid twins combine first-principles physics models with ML correctors to improve fidelity under unseen conditions. Engineers use twins for what-if simulation, predictive maintenance, and control optimization without risking the real system. They are central to IR4 reference architectures. *Reference: IR4.*`
+  },
+
+  {
+    id: "ag-iiot",
+    category: "AI",
+    chip: "Industrial IoT (IIoT)",
+    question: "What is industrial IoT (IIoT)?",
+    answer: `**IIoT** is the application of networked sensors, actuators, and edge compute to industrial assets, exposing data via protocols like OPC UA, MQTT, and Modbus/TCP. It supplies the high-frequency, time-stamped streams that AI models need for monitoring and control. Architectures typically tier edge gateways, fog nodes, and cloud lakes, with security via TLS and zero-trust segmentation. IIoT is the data plane of IR4. *Reference: IR4.*`
+  },
+
+  {
+    id: "ag-ai-oil-gas-inspections",
+    category: "AI",
+    chip: "AI in oil & gas inspections",
+    question: "How is AI used in oil & gas inspections?",
+    answer: `Computer vision models analyze drone, ROV, and crawler imagery to detect corrosion, weld defects, coating loss, and hydrocarbon leaks (often via gas-imaging IR cameras). Acoustic and vibration ML flags pump cavitation or compressor faults, while NLP parses inspection reports for risk ranking. Models are typically trained on domain-specific datasets aligned with API/ASME inspection standards. Edge deployment on intrinsically safe hardware is common. *Reference: Valthr §8.3.*`
+  },
+
+  {
+    id: "ag-ml-time-series-models",
+    category: "AI",
+    chip: "ML models for time-series sensor data",
+    question: "What machine-learning models suit time-series sensor data?",
+    answer: `Classical choices include ARIMA/SARIMA, exponential smoothing, and gradient-boosted trees on lag features (XGBoost, LightGBM). Deep models like LSTMs, GRUs, Temporal Convolutional Networks, and Transformers (e.g., Informer, PatchTST) capture longer dependencies. For anomaly tasks, autoencoders and variational variants dominate. Choice depends on horizon, sample rate, label availability, and edge-compute budget. *General knowledge.*`
+  },
+
+  {
+    id: "ag-false-negatives-positives-safety",
+    category: "AI",
+    chip: "False negatives vs false positives in safety AI",
+    question: "What are false negatives vs false positives in safety AI?",
+    answer: `A **false negative (FN)** is a missed real fault or hazard; a **false positive (FP)** is a spurious alarm on a healthy state. In safety-critical systems, FNs typically carry far higher cost (incidents, injuries) than FPs (nuisance trips, alarm fatigue), so operating points favor recall over precision. Decision thresholds, cost-sensitive loss functions, and ROC/PR analysis make this trade-off explicit. ISA-18.2 alarm-management practices address FP suppression. *Reference: Valthr §8.3.*`
+  },
+
+  {
+    id: "ag-xai-industrial",
+    category: "AI",
+    chip: "Explainable AI (XAI) in industry",
+    question: "How does explainable AI (XAI) help in industrial settings?",
+    answer: `**XAI** techniques such as SHAP, LIME, integrated gradients, and counterfactuals expose which sensors or events drove a model's prediction, letting engineers validate alerts before acting. This supports regulatory compliance (e.g., functional-safety audits), root-cause analysis, and operator trust in autonomous decisions. Global explanations also reveal spurious correlations or sensor drift. XAI is increasingly required in safety-case documentation. *Reference: Valthr §8.3.*`
+  },
+
+  {
+    id: "ah-what-is-api",
+    category: "Tech",
+    chip: "API basics",
+    question: "What is an API?",
+    answer: `An **API** (Application Programming Interface) is a defined contract that lets one piece of software talk to another. It specifies what requests you can make, what parameters to send, and what responses to expect, without exposing internal implementation details. Web APIs commonly send requests over HTTP and return data as JSON. APIs are the building blocks that let mobile apps, websites, and services integrate with each other.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-rest-plain-english",
+    category: "Tech",
+    chip: "REST in plain English",
+    question: "What is REST (in plain English)?",
+    answer: `**REST** (Representational State Transfer) is a style for designing web APIs around *resources* (things like users or orders) identified by URLs. You interact with resources using standard HTTP verbs: \`GET\` to read, \`POST\` to create, \`PUT\`/\`PATCH\` to update, and \`DELETE\` to remove. Each request is stateless, meaning the server does not remember prior requests; the client sends everything needed each time. REST is popular because it is simple, leverages existing web infrastructure, and maps cleanly to CRUD operations.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-what-is-json",
+    category: "Tech",
+    chip: "JSON basics",
+    question: "What is JSON?",
+    answer: `**JSON** (JavaScript Object Notation) is a lightweight, text-based data format for representing structured data as key-value pairs and arrays. It supports strings, numbers, booleans, null, objects (\`{}\`), and arrays (\`[]\`), making it easy for humans to read and machines to parse. Despite its name, JSON is language-independent and is the de facto standard for web APIs and configuration files. Most programming languages have built-in libraries for serializing and deserializing JSON.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-what-is-microservice",
+    category: "Tech",
+    chip: "Microservices basics",
+    question: "What is a microservice?",
+    answer: `A **microservice** is a small, independently deployable application that handles one focused capability (e.g., authentication, payments, search). Multiple microservices communicate over a network, usually via HTTP APIs or message queues, to form a larger system. The approach contrasts with a *monolith*, where all functionality lives in a single codebase and process. Benefits include independent scaling and faster team autonomy; trade-offs include operational complexity, distributed-system failure modes, and harder debugging.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-version-control-git",
+    category: "Tech",
+    chip: "Version control & Git",
+    question: "What is version control / git?",
+    answer: `**Version control** is a system that tracks changes to files over time, letting you review history, revert mistakes, and collaborate without overwriting each other's work. **Git** is the dominant version-control tool: it stores snapshots called *commits*, supports lightweight *branches* for parallel work, and allows merging changes back together. Distributed by design, every clone of a Git repository contains the full history. Platforms like GitHub and GitLab add hosting, code review, and collaboration tools on top of Git.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-continuous-integration",
+    category: "Tech",
+    chip: "CI basics",
+    question: "What is continuous integration (CI)?",
+    answer: `**Continuous integration** is the practice of automatically building and testing code every time it is pushed to a shared repository. A CI server (e.g., GitHub Actions, CircleCI, Jenkins) runs the project's test suite, linters, and build steps on each commit or pull request. The goal is to catch integration bugs early, before they accumulate, and keep the main branch in a known-good state. CI is the foundation for *continuous delivery* and *continuous deployment*, which automate releasing code to users.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-static-website",
+    category: "Tech",
+    chip: "Static websites",
+    question: "What is a static website?",
+    answer: `A **static website** consists of pre-built HTML, CSS, JavaScript, and asset files served directly to the browser without server-side rendering or database queries per request. The same files are delivered to every visitor, which makes static sites fast, cheap to host, and easy to cache on a CDN. Tools like Hugo, Jekyll, Astro, and Next.js (in static-export mode) generate these files from templates and content sources at build time. Dynamic behavior can still be added via client-side JavaScript or third-party APIs.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-client-vs-server",
+    category: "Tech",
+    chip: "Client-side vs server-side",
+    question: "What is the difference between client-side and server-side code?",
+    answer: `**Client-side** code runs in the user's browser (or app), handling rendering, user interaction, and UI state; it is visible and can be inspected by anyone. **Server-side** code runs on a remote machine you control, handling business logic, database access, authentication, and any work requiring secrets or trusted computation. The two communicate over a network, typically via HTTP requests. As a rule of thumb, never put sensitive logic or credentials in client-side code, since users can read and tamper with it.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-deployment-pipeline",
+    category: "Tech",
+    chip: "Deployment pipelines",
+    question: "What is a deployment pipeline?",
+    answer: `A **deployment pipeline** is an automated sequence of stages that takes code from commit to production. Typical stages include build, unit tests, integration tests, security scans, deploy to staging, smoke tests, and finally deploy to production. Each stage acts as a gate: if it fails, the pipeline stops and the change is not promoted further. Well-designed pipelines make releases reproducible, frequent, and low-risk, often supporting strategies like blue-green or canary deployments to reduce downtime.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ah-technical-debt",
+    category: "Tech",
+    chip: "Technical debt",
+    question: "What is technical debt?",
+    answer: `**Technical debt** is a metaphor for the long-term cost of choosing a quick or easy implementation now over a cleaner one that would take longer. Like financial debt, it accrues *interest*: shortcuts make future changes slower, riskier, and more bug-prone. Debt can be deliberate (a conscious trade-off to ship faster) or accidental (from inexperience or shifting requirements). Teams manage it by refactoring, adding tests, updating dependencies, and reserving capacity each sprint to pay it down before it compounds.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "drone-battery-chemistry",
+    category: "Drones",
+    chip: "Li-Po vs Li-Ion chemistry",
+    question: "What chemistry are drone batteries (Li-Po, Li-Ion)?",
+    answer: `Most racing and industrial drones use **Lithium Polymer (Li-Po)** batteries because they deliver high discharge rates (C-rating) needed for rapid throttle changes. **Lithium-Ion (Li-Ion)** cells, like 18650 or 21700 formats, offer higher energy density (~250 Wh/kg vs ~180 Wh/kg) and are favored for long-endurance survey drones. Li-Po uses a flexible polymer electrolyte allowing custom shapes, while Li-Ion uses cylindrical metal cans. The trade-off is power density (Li-Po) versus capacity per gram (Li-Ion). *General knowledge.*`
+  },
+
+  {
+    id: "drone-battery-cycle-life",
+    category: "Drones",
+    chip: "Cycle = one full charge/discharge",
+    question: "What is a battery cycle and what is a typical drone battery cycle life?",
+    answer: `A **battery cycle** is one complete discharge and recharge, equivalent to using 100% of capacity (two 50% discharges count as one cycle). Typical Li-Po drone batteries are rated for **200-300 cycles** before capacity degrades to 80% of original. Li-Ion packs in enterprise drones often last **400-500 cycles** due to gentler discharge profiles. Storage at full charge, deep discharges, and high temperatures all reduce cycle life. *General knowledge.*`
+  },
+
+  {
+    id: "drone-energy-density",
+    category: "Drones",
+    chip: "Wh/kg drives flight time",
+    question: "What is energy density (Wh/kg) and why does it matter for drones?",
+    answer: `**Energy density** measures how much energy a battery stores per unit mass, expressed in **watt-hours per kilogram (Wh/kg)**. For drones, every gram of battery costs lift, so higher Wh/kg directly translates to longer flight times. Modern Li-Po sits around 180-220 Wh/kg, while top Li-Ion cells reach 260-280 Wh/kg. This is the single biggest constraint on multirotor endurance, capping most drones at 20-40 minutes of flight. *General knowledge.*`
+  },
+
+  {
+    id: "drone-charge-curve-cc-cv",
+    category: "Drones",
+    chip: "CC-CV two-stage charging",
+    question: "What is the charge curve (constant current to constant voltage)?",
+    answer: `Lithium batteries charge in two stages: **Constant Current (CC)** delivers a fixed amperage until the cell reaches its peak voltage (typically 4.20V for Li-Po). Then **Constant Voltage (CV)** holds that voltage while current tapers off until it falls below a termination threshold. The CC phase fills roughly 80% of capacity quickly; the CV phase tops off the last 20% slowly. Skipping CV results in undercharged cells; exceeding voltage limits damages the battery. *General knowledge.*`
+  },
+
+  {
+    id: "drone-electric-not-combustion",
+    category: "Drones",
+    chip: "Why electric beats ICE for drones",
+    question: "Why are drones electric and not combustion?",
+    answer: `Electric motors offer **instant torque response** essential for the rapid attitude corrections multirotors need to stay stable. They scale down efficiently to small sizes, while combustion engines lose efficiency and become harder to control at low power. Electric drives are also vibration-free (critical for camera stabilization), quieter, and have far fewer moving parts. The downside is energy storage: fuel has ~40x the energy density of batteries, which is why long-endurance fixed-wing drones sometimes still use combustion. *General knowledge.*`
+  },
+
+  {
+    id: "drone-thermal-runaway",
+    category: "Drones",
+    chip: "Self-sustaining cell fire",
+    question: "What is battery thermal runaway?",
+    answer: `**Thermal runaway** is a chain reaction where a lithium cell's internal temperature rises uncontrollably, causing the electrolyte to vaporize, the separator to fail, and the cell to vent flammable gas or ignite. Triggers include physical damage, overcharging, internal short circuits, or external heat. Once started, neighboring cells heat up and propagate the failure, producing fires that reignite and cannot be smothered easily. Prevention means proper charging, careful handling, and storage in fire-resistant LiPo bags or metal containers. *General knowledge.*`
+  },
+
+  {
+    id: "drone-wireless-inductive-charging",
+    category: "Drones",
+    chip: "Inductive coupling efficiency",
+    question: "What is wireless / inductive charging and how efficient is it?",
+    answer: `**Inductive charging** transfers energy through a magnetic field between a transmitter coil in the landing pad and a receiver coil on the drone, eliminating physical connectors. Modern resonant systems achieve **85-92% end-to-end efficiency** at distances of a few centimeters. The benefits are corrosion-free contacts, weatherproofing, and the ability to autonomously land and charge without robotic arms or pogo pins. Trade-offs include slightly longer charge times and added receiver weight. *Reference: Valthr FR11 wireless docks.*`
+  },
+
+  {
+    id: "drone-battery-storage-safety",
+    category: "Drones",
+    chip: "Storage charge + fireproof bags",
+    question: "How do you safely store many drone batteries?",
+    answer: `Store Li-Po and Li-Ion packs at **storage charge (~3.80V/cell or 40-60% capacity)** when not used for more than a few days, since full or empty storage accelerates degradation. Keep batteries in a **cool, dry place (15-25 C)** inside fireproof LiPo safe bags, ammo cans, or dedicated steel cabinets. Separate damaged or swollen packs immediately and never stack heavy items on them. For fleet operations, use battery management cabinets with smoke detection and ventilation. *General knowledge.*`
+  },
+
+  {
+    id: "drone-capacity-vs-current",
+    category: "Drones",
+    chip: "Wh stores energy, A is flow",
+    question: "What is the difference between battery capacity (Wh) and current (A)?",
+    answer: `**Capacity (Wh, watt-hours)** is the total energy stored, determining how long the drone can fly. **Current (A, amps)** is the instantaneous rate of energy flow, determining how much thrust the motors can produce at once. Capacity equals voltage times amp-hours (e.g., 22.2V x 5Ah = 111 Wh). A pack's **C-rating** specifies its maximum safe discharge current (e.g., 50C on a 5Ah pack = 250A). You need both adequate capacity for endurance and adequate current for peak power. *General knowledge.*`
+  },
+
+  {
+    id: "drone-remaining-flight-time",
+    category: "Drones",
+    chip: "Voltage + current draw estimate",
+    question: "How do you measure remaining flight time?",
+    answer: `Flight controllers estimate remaining time by combining **pack voltage**, **instantaneous current draw**, and **integrated mAh consumed** (coulomb counting). The autopilot maintains a voltage-vs-state-of-charge curve for the pack chemistry and applies sag compensation under load. More advanced systems use Kalman filters fusing voltage, current, and temperature, often refined by a **smart battery's onboard fuel gauge IC**. Estimates degrade as cells age, so periodic capacity tests recalibrate the model. *General knowledge.*`
+  },
+
+  {
+    id: "aj-last-mile",
+    category: "Logistics",
+    chip: "Last-mile delivery",
+    question: "What is last-mile delivery?",
+    answer: `**Last-mile delivery** is the final leg of a shipment's journey, from a local distribution hub to the end recipient. It is typically the most expensive and time-consuming segment of the supply chain, often accounting for 40-50% of total delivery cost. Last-mile is where drones offer disproportionate value: they bypass road congestion, eliminate driver labour, and deliver point-to-point in minutes. Optimising this segment is a primary economic driver for autonomous aerial delivery.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-intra-facility",
+    category: "Logistics",
+    chip: "Intra-facility logistics",
+    question: "What is intra-facility logistics?",
+    answer: `**Intra-facility logistics** refers to the movement of goods, materials, or samples *within* a single site such as a hospital campus, factory, or warehouse complex. It includes tasks like transporting lab specimens between buildings or shuttling parts between production lines. Drones excel here by flying direct paths over obstacles, replacing pneumatic tubes, couriers, or motorised carts. Short, repeatable intra-facility routes are often a higher-margin use case than public last-mile delivery.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-drone-vs-ground",
+    category: "Logistics",
+    chip: "Drones vs ground vehicles",
+    question: "How does a drone delivery network compare to ground vehicles for short distances?",
+    answer: `For short-range deliveries (under ~10 km), drones typically outperform ground vehicles on **speed**, **energy per payload-km**, and **cost per drop**. They fly straight-line paths unaffected by traffic, weigh a fraction of a van, and require no driver. Ground vehicles still win on payload mass, weather tolerance, and bulk consolidation. The crossover point depends on package size, urban density, and regulatory airspace access.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-route-optimisation",
+    category: "Logistics",
+    chip: "Route optimisation",
+    question: "What is route optimisation?",
+    answer: `**Route optimisation** is the process of computing the most efficient path or sequence of stops for a delivery vehicle, balancing distance, time, energy, and constraints like time windows or no-fly zones. For drones, it extends into 3D and must account for wind, battery state, airspace corridors, and conflict deconfliction with other aircraft. Modern systems solve this dynamically as conditions change. Good route optimisation directly increases fleet throughput and lowers cost per delivery.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-dispatch",
+    category: "Logistics",
+    chip: "Dispatch in logistics",
+    question: "What is dispatch in a logistics context?",
+    answer: `**Dispatch** is the function of assigning specific jobs (orders, pickups, deliveries) to specific assets (vehicles, drones, drivers) at specific times. A good dispatcher matches demand to capacity while respecting constraints like vehicle range, payload, shift hours, and SLA windows. In drone networks, dispatch is fully automated and runs continuously, rebalancing the fleet as new orders arrive. Poor dispatching leaves assets idle or over-committed, both of which destroy margin.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-deadhead",
+    category: "Logistics",
+    chip: "Deadhead trips",
+    question: "What are \"deadhead\" trips and how can dispatching minimise them?",
+    answer: `A **deadhead** trip is any leg flown or driven without revenue-generating cargo, such as returning empty after a one-way delivery. Deadheading consumes energy, time, and asset life with zero output, dragging down fleet economics. Smart dispatching minimises it by chaining jobs (finding a return-leg pickup), pre-positioning assets near forecast demand, and clustering drop-offs. For drone fleets, swap-station network design and demand-prediction models are key tools for cutting deadhead ratio.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-otif",
+    category: "Logistics",
+    chip: "On-time-in-full (OTIF)",
+    question: "What is on-time-in-full (OTIF)?",
+    answer: `**OTIF** is a service-level metric that measures the percentage of orders delivered both **on time** *and* with the **complete** quantity ordered. It is a strict, binary measure: a partial or late shipment fails. Major retailers use OTIF to penalise underperforming suppliers, often with chargebacks. Drone delivery networks can post very high OTIF scores because each flight carries a single order with predictable transit time, removing two common failure modes of trucked freight.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-fleet-utilisation",
+    category: "Logistics",
+    chip: "Fleet utilisation",
+    question: "What is fleet utilisation and how is it measured?",
+    answer: `**Fleet utilisation** measures how much of an asset's available time or capacity is spent doing productive work. Common formulas include *active hours / available hours* or *revenue-km / total-km*. For drone fleets, utilisation is often gated by battery swap time, weather windows, and dispatch density rather than by aircraft count. Pushing utilisation from, say, 30% to 60% nearly halves the effective cost per delivery without buying a single new airframe.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-pick-and-pack",
+    category: "Logistics",
+    chip: "Pick-and-pack",
+    question: "What is \"pick-and-pack\" and where do drones fit?",
+    answer: `**Pick-and-pack** is the warehouse process of selecting items from inventory (picking) and assembling them into a shipment-ready parcel (packing). It happens *before* the delivery leg and is usually performed by humans or robotic arms. Drones do not perform pick-and-pack themselves; they collect a sealed, drone-ready parcel from a launch pad or loading port. Tight integration between the pick-and-pack workflow and drone dispatch is what allows sub-30-minute end-to-end fulfilment.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aj-reverse-logistics",
+    category: "Logistics",
+    chip: "Reverse logistics",
+    question: "What is reverse logistics?",
+    answer: `**Reverse logistics** covers the flow of goods *back* up the supply chain: returns, recalls, repairs, recycling, and reusable-container retrieval. It is operationally harder than forward logistics because volumes are lumpy, items are non-standard, and condition varies. Drones can support reverse logistics for small, high-value items (e.g. returned pharmaceuticals or diagnostic samples) where speed matters. Designing for return legs also helps reduce deadhead trips and improves fleet utilisation.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-change-management-it",
+    category: "Operations",
+    chip: "Change management in IT projects",
+    question: "What is change management in IT projects?",
+    answer: `Change management is the structured approach to transitioning people, processes, and technology from a current state to a desired future state. In IT projects it covers stakeholder communication, training, role redefinition, and managing resistance so that a deployed system actually delivers business value. Frameworks like Prosci ADKAR (Awareness, Desire, Knowledge, Ability, Reinforcement) or Kotter's 8 Steps are commonly used. Without it, even technically successful rollouts often fail to achieve adoption.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-stakeholder-resistance",
+    category: "Operations",
+    chip: "Automation failure from stakeholder resistance",
+    question: "Why do automation projects fail when stakeholders resist change?",
+    answer: `Automation projects depend on operators, supervisors, and managers actively using the new system and trusting its outputs. When stakeholders resist (fearing job loss, distrusting AI, or preferring familiar workflows), they bypass the system, feed it bad data, or reject its recommendations, which collapses the ROI case. Studies from McKinsey and BCG consistently cite "people issues" as the top cause of digital transformation failure, ahead of technical problems. Early engagement, transparent communication about role changes, and visible executive sponsorship are the standard mitigations.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-competency-framework",
+    category: "Operations",
+    chip: "Competency framework definition",
+    question: "What is a competency framework?",
+    answer: `A competency framework is a structured catalogue of the skills, knowledge, and behaviours required for specific roles, usually with proficiency levels (e.g. novice, practitioner, expert). It enables consistent hiring, training design, performance review, and certification across an organisation. For technical roles it typically separates hard skills (e.g. operating a flight controller) from soft skills (e.g. crew resource management). HR and operations functions use it to identify gaps and plan workforce development.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-permit-to-fly",
+    category: "Operations",
+    chip: "Permit-to-fly / operator licence regime",
+    question: "What is a \"permit-to-fly\" or operator licence regime?",
+    answer: `A permit-to-fly or operator licence regime is a regulatory scheme where individuals or organisations must demonstrate competency and meet safety standards before being authorised to operate equipment, typically aircraft or drones. It usually involves theoretical exams, practical assessment, medical fitness, and ongoing recurrent training. In aviation contexts (EASA, FAA, CAA) it ties into airworthiness certification and operational risk assessment. Industrial drone operators commonly need a category-specific licence (e.g. EASA A1/A3, A2, or Specific Category authorisation).
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-drone-operator-training-time",
+    category: "Operations",
+    chip: "Drone operator training duration",
+    question: "How long does it typically take to train a drone operator?",
+    answer: `Basic recreational/light commercial certification (e.g. EASA A1/A3 open category) takes around one day of online theory plus an exam. Professional industrial training (A2 or Specific Category, BVLOS, confined-space inspection) typically requires 2-6 weeks combining theory, simulator time, and supervised flight hours. Achieving full operational proficiency on a specific airframe and mission profile (e.g. tank inspection) usually adds another 50-200 logged flight hours. Recurrent training every 12-24 months is standard.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-drone-ops-manager",
+    category: "Operations",
+    chip: "Drone Operations Manager role",
+    question: "What is the role of a Drone Operations Manager?",
+    answer: `A Drone Operations Manager (sometimes "Accountable Manager" under EASA) owns the operational safety, regulatory compliance, and commercial delivery of a drone fleet. Responsibilities include maintaining the Operations Manual, authorising missions, managing pilot competency records, liaising with regulators, and conducting risk assessments (SORA). They are typically the named point of accountability on the operator's authorisation certificate. The role blends aviation safety management with project and personnel management.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-safety-officer-drone",
+    category: "Operations",
+    chip: "Safety Officer duties during drone ops",
+    question: "What does a Safety Officer typically do during drone operations?",
+    answer: `The Safety Officer (or visual observer with safety duties) conducts pre-flight site surveys, enforces exclusion zones, monitors weather and airspace, and has authority to abort the mission if conditions degrade. During flight they maintain situational awareness for ground hazards and uninvolved persons that the pilot may not see. Post-flight they log incidents, near-misses, and equipment anomalies into the safety management system. On industrial sites they also coordinate with the host facility's permit-to-work and HSE teams.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-shadow-mode-deployment",
+    category: "Operations",
+    chip: "Shadow mode deployment",
+    question: "What is \"shadow mode\" deployment and why use it?",
+    answer: `Shadow mode is a deployment pattern where a new system runs in parallel with the existing process but its outputs are not acted upon - they are only logged and compared. This lets teams validate accuracy, latency, and edge-case behaviour against ground truth without operational risk. It is widely used for ML models, autonomous systems, and trading algorithms before promotion to production. Once shadow performance meets predefined thresholds, the system is gradually cut over (canary release).
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-measuring-adoption",
+    category: "Operations",
+    chip: "Measuring user adoption",
+    question: "How do you measure user adoption of a new system?",
+    answer: `Adoption is measured through a mix of usage metrics (active users, frequency, feature penetration, session depth), outcome metrics (tasks completed in the system vs legacy workflow), and qualitative signals (NPS, user interviews, support ticket trends). Cohort analysis tracks whether adoption sticks beyond the initial training push. Leading indicators include training completion and login rates; lagging indicators include the decommissioning of legacy tools. A common target is 80% weekly active use among the licensed population within 90 days of go-live.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ak-go-live-event",
+    category: "Operations",
+    chip: "Go-live event in deployment",
+    question: "What is a \"go-live\" event in deployment?",
+    answer: `Go-live is the formal cutover point at which a new system becomes the system of record and starts handling real production workload. It is preceded by a readiness checklist (data migration verified, training complete, support staffed, rollback plan documented) and is usually run as a coordinated event with on-call engineers and business stakeholders. Hypercare follows for 1-4 weeks with elevated support coverage. A successful go-live is judged on stability, business continuity, and absence of P1 incidents rather than feature completeness.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-simulation-software",
+    category: "QA",
+    chip: "Simulation in software",
+    question: "What is simulation in software development?",
+    answer: `Simulation is the practice of running a **computational model** of a system or environment to predict behaviour without engaging real hardware. It lets engineers test edge cases, failures, and rare events cheaply and repeatably. In autonomy, simulation accelerates iteration by exposing the controller to thousands of scenarios per hour. Outputs are only as trustworthy as the model's fidelity and assumptions.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-monte-carlo",
+    category: "QA",
+    chip: "Monte Carlo simulation",
+    question: "What is Monte Carlo simulation?",
+    answer: `Monte Carlo simulation runs a model many times with **randomly sampled inputs** drawn from probability distributions, then aggregates the outputs to estimate statistics like means, variances, and tail risks. It is the standard tool for quantifying uncertainty when closed-form analysis is intractable. Engineers use it to bound miss-distances, dispersion, and failure probabilities. Convergence improves roughly with the square root of sample count.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-digital-twin",
+    category: "QA",
+    chip: "Digital twin",
+    question: "What is a digital twin (deeper than the AI version)?",
+    answer: `A digital twin is a **live, physics-based replica** of a specific physical asset, kept in sync with telemetry from its real counterpart. Unlike a generic simulator, it represents one serial-numbered unit and updates its state as sensors stream data. This enables predictive maintenance, what-if analysis, and anomaly detection on the actual machine. Fidelity demands accurate models, calibrated parameters, and a robust data pipeline.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-hil-testing",
+    category: "QA",
+    chip: "Hardware-in-the-loop",
+    question: "What is hardware-in-the-loop (HIL) testing?",
+    answer: `HIL testing connects **real embedded hardware** (flight computers, ECUs, actuators) to a simulated environment that emulates sensors and plant dynamics in real time. The hardware behaves as if flying, but the world is synthetic. This catches timing, interrupt, and I/O bugs that pure software simulation misses. HIL is a standard gate before live trials in aerospace and automotive.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-sim-to-real",
+    category: "QA",
+    chip: "Sim-to-Real transfer",
+    question: "What is \"Sim-to-Real\" transfer?",
+    answer: `Sim-to-Real transfer is the challenge of moving a controller or policy trained in simulation onto **real hardware** without performance collapse. The gap arises from unmodelled friction, sensor noise, latency, and environmental variability. Mitigations include domain randomisation, system identification, and fine-tuning on real data. It is a central concern for learned controllers in robotics and autonomy.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-validate-autonomy",
+    category: "QA",
+    chip: "Validating before real flights",
+    question: "How do you validate an autonomous system before real flights?",
+    answer: `Validation proceeds through a **layered V&V pipeline**: unit tests, software-in-the-loop, hardware-in-the-loop, captive-carry, and finally tethered or restricted free flight. Each stage exercises more realism while constraining risk. Monte Carlo dispersion, fault injection, and scenario libraries verify behaviour across the operational envelope. Sign-off requires traceable evidence that requirements are met under nominal and off-nominal conditions.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-flight-envelope",
+    category: "QA",
+    chip: "Flight envelope",
+    question: "What is a flight envelope and how do you stay inside it?",
+    answer: `A flight envelope is the **bounded region of states** (airspeed, altitude, load factor, angle of attack) within which an aircraft is certified to operate safely. Outside it, structural, aerodynamic, or control limits may be violated. Pilots and autopilots stay inside via envelope-protection logic, limiters, and trajectory planners that reject infeasible commands. Continuous state estimation feeds these guards in real time.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-sil",
+    category: "QA",
+    chip: "Software-in-the-loop",
+    question: "What is software-in-the-loop (SIL)?",
+    answer: `SIL runs the **production flight or control software** unchanged inside a simulated environment, with no real hardware in the loop. It validates algorithms, integration, and mission logic at desktop speed and scale. Compared to HIL it is faster and cheaper, but cannot catch hardware-timing or driver issues. SIL is typically the first integrated test stage after unit testing.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-discrete-event-sim",
+    category: "QA",
+    chip: "Discrete-event simulation",
+    question: "What is a discrete-event simulation?",
+    answer: `Discrete-event simulation (DES) advances state only at **event timestamps** rather than fixed time steps, processing a priority queue of scheduled events. It is well-suited to logistics, queueing networks, and message-passing systems where activity is sparse. DES contrasts with continuous-time simulation used for ODE-driven dynamics. Tools include SimPy, Arena, and OMNeT++.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "al-matlab-role",
+    category: "QA",
+    chip: "MATLAB in prototypes",
+    question: "What is the role of MATLAB in engineering prototypes?",
+    answer: `MATLAB and Simulink provide a **rapid environment** for modelling dynamics, designing controllers, and generating embeddable code. Engineers prototype algorithms with rich numerical libraries, then progress to HIL via auto-generated C. Its toolchain is a de-facto standard for aerospace and control prototyping. The Valthr development used MATLAB for early dynamics and guidance prototypes before C++ porting (Valthr §5.3).
+
+Reference: Valthr §5.3 (MATLAB prototype).`
+  },
+
+  {
+    id: "am-kpi-vs-metric",
+    category: "PM-General",
+    chip: "KPI vs metric",
+    question: "What is a KPI vs a metric?",
+    answer: `A **metric** is any quantitative measurement of a process, system, or outcome (e.g., latency, throughput, error count). A **KPI** (Key Performance Indicator) is a curated subset of metrics tied directly to strategic objectives and decision-making thresholds. Every KPI is a metric, but not every metric is a KPI — KPIs are chosen because they drive action when they move. For autonomous systems, examples include mission success rate (KPI) versus per-sensor packet loss (metric).
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-mtbf",
+    category: "PM-General",
+    chip: "MTBF",
+    question: "What is mean time between failures (MTBF)?",
+    answer: `**MTBF** is the average operational time between unplanned failures of a repairable system, computed as total uptime divided by number of failures. Higher MTBF indicates greater reliability and is a core input to maintenance scheduling, warranty pricing, and fleet sizing. It assumes failures follow a roughly constant hazard rate, so it is most meaningful during a system's useful-life phase (not infant mortality or wear-out). For autonomous fleets, MTBF is often tracked per subsystem (compute, perception, drivetrain) to localize weak points.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-mttr",
+    category: "PM-General",
+    chip: "MTTR",
+    question: "What is mean time to repair (MTTR)?",
+    answer: `**MTTR** is the average time required to diagnose, fix, and return a failed system to service, measured from failure onset to restored operation. It captures maintainability and operational responsiveness — fast MTTR offsets moderate MTBF in availability calculations. Components include detection time, dispatch, parts logistics, hands-on repair, and verification testing. Reducing MTTR usually requires investments in observability, modular design, spare-parts strategy, and trained field crews.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-availability",
+    category: "PM-General",
+    chip: "Availability / uptime",
+    question: "What is system availability (uptime)?",
+    answer: `**Availability** is the fraction of time a system is ready to perform its intended function, commonly expressed as MTBF / (MTBF + MTTR) or as a percentage like "99.9%". It blends reliability (how often it breaks) and maintainability (how fast it recovers) into a single business-facing number. Service-level agreements often specify minimum availability with financial penalties below threshold. For autonomous platforms, distinguish *inherent availability* (design-only) from *operational availability* (including logistics and admin delays).
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-mission-success",
+    category: "PM-General",
+    chip: "Mission success rate",
+    question: "What is mission success rate?",
+    answer: `**Mission success rate** is the percentage of dispatched missions that achieve all defined success criteria — delivery completed, task executed, return-to-base achieved — without human intervention or abort. Unlike availability, it measures end-to-end outcome rather than instantaneous readiness, capturing failures in planning, perception, and execution that uptime metrics miss. It is typically the headline KPI for autonomy programs because it ties directly to revenue and customer trust. Tracking it by mission type, environment, and software version exposes regressions early.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-first-pass-yield",
+    category: "PM-General",
+    chip: "First-pass yield",
+    question: "What is \"first-pass yield\" in operations?",
+    answer: `**First-pass yield (FPY)** is the percentage of units or jobs that complete a process correctly the first time, with no rework, retries, or manual intervention. It is stricter than overall yield because it penalizes hidden costs of rework that final-yield metrics conceal. In autonomous operations, FPY might measure the share of deliveries completed without a teleop takeover or manual recovery. Low FPY signals process variability and is a leading indicator of margin erosion even when end results look acceptable.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-cost-per-delivery",
+    category: "PM-General",
+    chip: "Cost per delivery",
+    question: "How do you measure cost per delivery accurately?",
+    answer: `Accurate **cost per delivery** allocates all relevant costs — direct (energy, depreciation, insurance, teleop labor) and indirect (fleet ops, software, overhead) — across the volume of completed deliveries over a defined period. Pitfalls include ignoring failed-mission costs, amortizing capex incorrectly, and excluding shared infrastructure. Best practice is activity-based costing: tag every cost driver to the unit of work it supports, then report fully-loaded cost alongside marginal cost. Trend it over time and segment by route, vehicle class, and time-of-day to drive optimization.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-balanced-scorecard",
+    category: "PM-General",
+    chip: "Balanced scorecard",
+    question: "What is a balanced scorecard?",
+    answer: `The **balanced scorecard** (Kaplan & Norton) is a strategic management framework that tracks performance across four perspectives: financial, customer, internal processes, and learning/growth. It counters the tendency to over-optimize short-term financials by forcing visibility into leading indicators that drive future results. Each perspective gets its own KPIs linked to strategic objectives, creating a cause-and-effect chain from capability investments to business outcomes. For autonomy organizations, this often maps to unit economics, mission success, operational reliability, and engineering velocity.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-fleet-readiness",
+    category: "PM-General",
+    chip: "Fleet readiness",
+    question: "What is fleet readiness?",
+    answer: `**Fleet readiness** is the percentage of a fleet that is mission-capable and available for deployment at a given moment, accounting for vehicles in maintenance, charging, calibration, or quarantine. It is a stricter cousin of availability that emphasizes deployable capacity rather than per-unit uptime. Readiness gates demand-fulfillment planning: a 100-vehicle fleet at 70% readiness can only commit to 70 simultaneous missions. Tracking causes of non-readiness (scheduled vs unscheduled, software vs hardware) reveals where to invest to expand effective capacity.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "am-leading-vs-lagging",
+    category: "PM-General",
+    chip: "Leading vs lagging",
+    question: "What is the difference between \"leading\" and \"lagging\" indicators?",
+    answer: `**Lagging indicators** measure outcomes after they occur — revenue, mission success rate, churn — and confirm whether strategy worked. **Leading indicators** measure activities or conditions that predict future outcomes — disengagement rate, simulation pass rate, near-miss frequency — and allow course correction before results materialize. Good dashboards pair them: lagging metrics for accountability, leading metrics for management. Over-relying on lagging indicators is like driving by looking only in the rearview mirror.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-risk-definition",
+    category: "Risk",
+    chip: "Risk in project management",
+    question: "What is risk in project management?",
+    answer: `**Risk** is an uncertain event or condition that, if it occurs, has a positive or negative effect on project objectives (scope, schedule, cost, quality). In drone projects, typical risks include weather delays, equipment failure, regulatory changes, and operator error. Risks are characterized by **probability** (likelihood) and **impact** (consequence). Effective management requires identifying, analyzing, prioritizing, and responding to risks throughout the project lifecycle.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-probability-vs-impact",
+    category: "Risk",
+    chip: "Probability vs impact in scoring",
+    question: "What's the difference between probability and impact in risk scoring?",
+    answer: `**Probability** measures how likely a risk is to occur, typically rated on a scale (e.g., 1-5 or 0-100%). **Impact** measures the severity of consequences if the risk materializes, covering cost, schedule, safety, or reputation effects. Both dimensions are scored independently then combined (often multiplied) to produce an overall risk score. A high-probability/low-impact risk (minor GPS drift) is treated differently than a low-probability/high-impact one (drone crash into crowd).
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-rpn",
+    category: "Risk",
+    chip: "Risk Priority Number (RPN)",
+    question: "What is a risk priority number (RPN) and how is it calculated?",
+    answer: `**RPN** is a quantitative metric from FMEA (Failure Mode and Effects Analysis) used to prioritize risks. It is calculated as **RPN = Severity x Occurrence x Detection**, each rated typically 1-10. Higher RPN values indicate risks needing urgent mitigation. For drone operations, a battery thermal runaway might score Severity 9, Occurrence 3, Detection 4, giving RPN 108 — flagging it for design or process controls.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-residual-risk",
+    category: "Risk",
+    chip: "Residual risk after mitigation",
+    question: "What is residual risk?",
+    answer: `**Residual risk** is the risk that remains after mitigation controls have been applied. No mitigation eliminates risk entirely — even with redundant motors, geofencing, and trained pilots, some chance of failure persists. Stakeholders must formally **accept** residual risk if it falls within tolerance, or apply further controls if it does not. Documenting residual risk is essential for audits, insurance underwriting, and regulatory approval.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-drone-insurance",
+    category: "Risk",
+    chip: "How drone insurance works",
+    question: "How does insurance work for drone operations?",
+    answer: `Drone insurance transfers financial risk from the operator to an **insurer** in exchange for a **premium**. Underwriters assess pilot certification, equipment value, operational area, and flight hours to set rates. When an incident occurs, the operator files a **claim**; after investigation, the insurer pays out up to policy limits, minus any **deductible**. Most commercial drone work (and many jurisdictions) require proof of insurance before flight authorization.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-third-party-liability",
+    category: "Risk",
+    chip: "Third-party liability defined",
+    question: "What is third-party liability?",
+    answer: `**Third-party liability** is the operator's legal responsibility for bodily injury or property damage caused to others (people or property not part of the operation). For drones, this includes a UAV striking a bystander, damaging a vehicle, or causing a fire on a building. Liability coverage pays legal defense costs and damages awarded. Many countries mandate minimum third-party liability cover for commercial UAV flights, often scaled to drone weight.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-hull-vs-liability",
+    category: "Risk",
+    chip: "Hull vs liability insurance",
+    question: "What is hull insurance vs liability insurance for aircraft?",
+    answer: `**Hull insurance** covers physical damage to the aircraft itself (the drone, payload, and sometimes ground station) — repair or replacement after a crash, loss, or theft. **Liability insurance** covers harm the aircraft causes to third parties or their property. Hull is a *first-party* coverage (protects the owner's asset); liability is a *third-party* coverage (protects others harmed by the asset). Commercial drone policies typically bundle both, with separate limits and deductibles.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-policy-coverage",
+    category: "Risk",
+    chip: "Typical drone policy inclusions",
+    question: "What does a typical drone insurance policy cover?",
+    answer: `A standard commercial drone policy includes **third-party liability** (bodily injury, property damage), **hull coverage** (the drone and payload), and often **payload/equipment** add-ons (cameras, LiDAR sensors). Many policies also offer **invasion of privacy**, **non-owned aircraft**, and **ground equipment** coverage. Common exclusions are intentional misconduct, flying outside authorized airspace, war/terrorism, and operations beyond pilot certification. Limits, deductibles, and territorial scope are negotiated per policy.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-force-majeure",
+    category: "Risk",
+    chip: "Force majeure clause",
+    question: "What is force majeure in a contract?",
+    answer: `**Force majeure** ("superior force") is a contract clause that excuses one or both parties from performance when extraordinary, unforeseeable events make it impossible — natural disasters, war, pandemics, government acts. For drone projects, severe storms, sudden no-fly-zone declarations, or regulatory grounding could trigger it. The clause typically suspends obligations rather than cancelling them, and requires prompt notice. Scope and triggering events must be precisely drafted; courts interpret them narrowly.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "an-accept-mitigate-transfer",
+    category: "Risk",
+    chip: "Accept vs mitigate vs transfer",
+    question: "What is risk acceptance vs mitigation vs transfer?",
+    answer: `These are three of the four classic risk responses (the fourth being **avoidance**). **Acceptance** means acknowledging the risk and budgeting reserves without active control — used when cost of action exceeds expected loss. **Mitigation** reduces probability or impact through controls (redundant systems, training, maintenance). **Transfer** shifts financial consequence to a third party, typically via **insurance** or contractual indemnities. A drone program usually combines all three: mitigate via pre-flight checks, transfer via liability insurance, accept minor schedule slips.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-rfp",
+    category: "Contract",
+    chip: "Request for Proposal",
+    question: "What is a Request for Proposal (RFP)?",
+    answer: `An **RFP** is a formal procurement document soliciting detailed proposals from vendors to fulfill specific requirements. For an industrial drone project, it typically specifies technical requirements (payload, endurance, autonomy), evaluation criteria, pricing structure, and delivery timelines. Vendors respond with bound commitments on scope, price, and schedule. RFPs are used when the buyer knows what they need but wants competitive bids on *how* to deliver it.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-rfi",
+    category: "Contract",
+    chip: "Request for Information",
+    question: "What is a Request for Information (RFI)?",
+    answer: `An **RFI** is a preliminary, non-binding inquiry sent to potential suppliers to gather information about their capabilities, products, and approaches. Unlike an RFP, it does not solicit pricing or firm commitments. For drone projects, RFIs help map the vendor landscape — flight controllers, sensor suppliers, ground station providers — before narrowing down to a shortlist. The output typically informs a later RFP or RFQ.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-sow",
+    category: "Contract",
+    chip: "Statement of Work",
+    question: "What is a Statement of Work (SoW)?",
+    answer: `A **Statement of Work** is a contract document defining the specific deliverables, tasks, timelines, acceptance criteria, and responsibilities of both parties. In drone development, an SoW might cover firmware integration milestones, flight test campaigns, and certification support. It sits beneath a master agreement and governs a particular engagement. Ambiguity in an SoW is the leading cause of disputes, so precision in acceptance criteria is critical.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-vendor-lockin",
+    category: "Contract",
+    chip: "Vendor lock-in risk",
+    question: "What is vendor lock-in and why is it a risk?",
+    answer: `**Vendor lock-in** occurs when switching suppliers becomes prohibitively costly due to proprietary interfaces, data formats, or deep integration. For drone programs, lock-in to a single autopilot stack, telemetry protocol, or ground-control software can lead to escalating prices, stalled roadmaps, and supply-chain fragility. Mitigations include open standards (MAVLink, ROS), source escrow, dual-sourcing critical components, and contractual exit assistance clauses.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-msa",
+    category: "Contract",
+    chip: "Master Service Agreement",
+    question: "What is a master service agreement?",
+    answer: `A **Master Service Agreement (MSA)** is an overarching contract establishing the legal, commercial, and operational terms governing all engagements between two parties — IP ownership, liability, confidentiality, indemnification, and dispute resolution. Individual projects are then executed via lighter-weight SoWs or work orders that reference the MSA. This avoids re-negotiating boilerplate per project and accelerates kickoff for follow-on drone work.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-change-order",
+    category: "Contract",
+    chip: "Change order",
+    question: "What is a change order in a contract?",
+    answer: `A **change order** is a formal written amendment modifying the scope, schedule, or price of an existing contract or SoW. When the drone customer adds a new sensor payload mid-program or shifts certification targets, a change order documents the impact and authorizes the adjustment. Without disciplined change-order procedures, "scope creep" silently erodes margins and timelines. Most contracts require both-party signature before work proceeds.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-escrow",
+    category: "Contract",
+    chip: "Source code escrow",
+    question: "What is escrow and when is it used in software contracts?",
+    answer: `**Software escrow** is the deposit of source code, build instructions, and documentation with a neutral third party, released to the licensee under defined trigger conditions (vendor bankruptcy, breach, abandonment). For drone programs relying on proprietary autopilot or mission-planning software, escrow protects continuity of safety-critical operations. Release triggers, verification rights, and update cadence must all be specified in the escrow agreement.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-milestone-payment",
+    category: "Contract",
+    chip: "Milestone-based payments",
+    question: "What is a milestone-based payment schedule?",
+    answer: `A **milestone-based payment schedule** ties supplier payments to verified completion of specific deliverables — e.g., 20% on PDR, 30% on first successful tethered flight, 30% on type-acceptance, 20% on final delivery. This aligns cash flow with actual progress and gives the buyer leverage if quality slips. Milestones must have objective, testable acceptance criteria; vague milestones invite disputes and delayed payments.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-bafo",
+    category: "Contract",
+    chip: "Best and Final Offer",
+    question: "What does \"best and final offer\" (BAFO) mean?",
+    answer: `**BAFO** is the final round in a competitive procurement where shortlisted vendors are invited to submit their best terms — price, schedule, warranty — typically after clarification rounds. It signals that further negotiation will not occur and forces vendors to put their sharpest pencil down. Buyers must use BAFO sparingly; overuse erodes vendor trust and may cause top suppliers to decline future bids.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ao-supplier-qualification",
+    category: "Contract",
+    chip: "Supplier qualification",
+    question: "What is supplier qualification?",
+    answer: `**Supplier qualification** is the structured process of evaluating a prospective vendor's technical capability, quality systems, financial stability, regulatory compliance, and security posture before authorizing them to supply. For aerospace-grade drone components, qualification typically requires AS9100 audits, sample testing, first-article inspection, and ongoing performance monitoring. A qualified supplier list (QSL) reduces program risk and speeds future sourcing decisions.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "ap-drone-5yr-trajectory",
+    category: "Future",
+    chip: "Drones: 5-year trajectory",
+    question: "Where are autonomous drones heading in the next 5 years?",
+    answer: `Expect steady gains in **autonomy**, **endurance**, and **payload-to-weight** ratios, with BVLOS (beyond visual line of sight) operations becoming routine in inspection, logistics, and agriculture. Onboard AI will handle obstacle avoidance, mission replanning, and multi-drone coordination with less human oversight. Regulatory frameworks are the bigger unknown — technology often outpaces policy. Mass consumer delivery remains plausible but uneven across geographies.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-daas-definition",
+    category: "Future",
+    chip: "Drone-as-a-Service (DaaS)",
+    question: "What is \"drone-as-a-service\" (DaaS)?",
+    answer: `**DaaS** is a business model where customers pay for drone-delivered outcomes — inspections, mapping, deliveries, surveillance — rather than buying and operating drones themselves. The provider handles hardware, pilots, software, compliance, and data processing. It lowers the barrier for industries (utilities, insurance, construction) that need occasional aerial capability. Growth depends on standardized pricing, certified operators, and data-handling trust.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-drone-vs-ground-delivery",
+    category: "Future",
+    chip: "Drones vs ground delivery",
+    question: "Will drones replace ground delivery in cities?",
+    answer: `Unlikely to fully replace it. Drones excel at **light, time-sensitive, last-mile** drops — medical samples, small parcels, rural routes — but face limits in payload, weather, airspace density, and noise tolerance. Urban ground networks (vans, bikes, lockers) remain more economical per parcel at scale. The realistic future is **hybrid**: drones complementing rather than displacing ground logistics.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-5g-6g-drone-networks",
+    category: "Future",
+    chip: "5G/6G in drone networks",
+    question: "What is the role of 5G/6G in future drone networks?",
+    answer: `**5G** enables low-latency control, HD video uplink, and reliable BVLOS communication through network slicing and edge compute. **6G** (expected ~2030) promises sub-millisecond latency, integrated sensing, and native support for aerial nodes. This unlocks denser swarms, remote piloting, and AI offload to the network edge. Coverage gaps and spectrum policy will gate real-world deployment.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-crewless-industrial-sites",
+    category: "Future",
+    chip: "Fully crewless industrial sites",
+    question: "What's the prospect of fully crewless industrial sites?",
+    answer: `Fully **crewless** mines, warehouses, and ports are emerging in pockets — Rio Tinto's autonomous haulage and Amazon-style robotic fulfillment are early proofs. Full autonomy works best in **structured, hazardous, or repetitive** environments. Maintenance, exception handling, and safety oversight still require humans, often remote. Expect "lightly crewed" rather than zero-crew sites for the next decade.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-swarm-intelligence",
+    category: "Future",
+    chip: "Swarm intelligence in robotics",
+    question: "What is \"swarm intelligence\" in robotics?",
+    answer: `**Swarm intelligence** uses many simple agents following local rules to produce coordinated group behavior — inspired by ants, bees, and bird flocks. In robotics it enables drones or ground bots to **search, map, or build** collectively without centralized control. Benefits include resilience (one failure doesn't break the mission) and scalability. Challenges remain in communication, conflict resolution, and predictable outcomes.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-hydrogen-fuel-cell-drones",
+    category: "Future",
+    chip: "Hydrogen fuel cells for drones",
+    question: "What is hydrogen fuel cell technology for drones?",
+    answer: `**Hydrogen fuel cells** generate electricity from H2 + O2, offering 2-3x the energy density of lithium batteries with only water as exhaust. For drones this means **longer flight times** (hours vs minutes) and faster refueling. Drawbacks include tank weight, hydrogen storage/handling, and sparse refueling infrastructure. Expect adoption first in industrial inspection and surveillance, not consumer.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-solar-powered-drones",
+    category: "Future",
+    chip: "Solar-powered drone tech",
+    question: "What is solar-powered drone tech?",
+    answer: `Solar drones use **photovoltaic cells** on wings to extend or sustain flight, enabling pseudo-satellite missions for connectivity, monitoring, or relays. Projects like Airbus Zephyr have flown for weeks at high altitude. Practical limits include low power-to-weight, weather sensitivity, and night-time energy storage. Best suited to **HALE** (high-altitude long-endurance) niches rather than mass payload work.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-drone-policy-changes",
+    category: "Future",
+    chip: "Policy changes enabling drones",
+    question: "What policy changes are most likely to enable more drone use?",
+    answer: `Key shifts include **standardized BVLOS rules**, **remote ID** mandates, integrated UTM (unmanned traffic management) systems, and clearer privacy/liability frameworks. Mutual recognition of operator certifications across jurisdictions would also accelerate cross-border use. Local noise and overflight rules will likely tighten even as airspace opens. Pace varies hugely by country — EU and parts of Asia are currently moving faster than the US.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "ap-drone-cost-trajectory",
+    category: "Future",
+    chip: "Drone hardware cost trajectory",
+    question: "What's the long-term cost trajectory for drone hardware?",
+    answer: `Hardware costs continue to fall thanks to **commoditized motors, sensors, and silicon** shared with smartphones and EVs. Expect industrial drones to follow the curve consumer drones did — capabilities at $5K today reaching $1K within years. Software, certification, and operations are becoming the larger cost share. Geopolitics (export controls, supply chains) is the main wildcard that could reverse the trend regionally.
+
+*General knowledge / informed forecast.*`
+  },
+
+  {
+    id: "aq-drone-delivery-ethics",
+    category: "Ethics",
+    chip: "Drone delivery ethics",
+    question: "What ethical issues does autonomous drone delivery raise?",
+    answer: `Autonomous drone delivery raises concerns around **privacy** (cameras and sensors flying over private property), **noise pollution**, and **equitable access** (will service reach rural or low-income areas?). It also raises **safety** questions: what happens if a drone fails over a crowd, and who bears the risk? **Labor displacement** of human couriers is another consideration. Operators must weigh efficiency gains against community impact and consent.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-safety-culture-heavy-industry",
+    category: "Ethics",
+    chip: "Safety culture defined",
+    question: "What is \"safety culture\" in heavy industry?",
+    answer: `**Safety culture** is the shared set of values, attitudes, and practices that prioritize safety at every level of an organization. It means workers feel empowered to **stop work** when something looks wrong, leaders allocate resources for safety, and incidents are investigated without blame. A strong safety culture treats safety as a core value rather than a compliance checkbox. It is often measured through surveys, near-miss reporting rates, and behavioral observation.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-drone-damage-accountability",
+    category: "Ethics",
+    chip: "Accountability for damage",
+    question: "Who is accountable when an autonomous drone causes damage?",
+    answer: `Accountability is typically distributed across **the operator** (who flew or supervised the mission), **the manufacturer** (for defects in hardware or software), and **the owner/employer** (vicarious liability). Regulators may also hold the **remote pilot in command** legally responsible even for autonomous flights. Insurance, contracts, and jurisdiction-specific aviation law determine the final allocation. Autonomy does not eliminate human responsibility — it redistributes it.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-building-trust-autonomy",
+    category: "Ethics",
+    chip: "Building trust",
+    question: "How do you build trust in an autonomous system?",
+    answer: `Trust is built through **transparency** (explainable decisions and clear status indicators), **predictability** (consistent behavior in known conditions), and **demonstrated reliability** over time. Staged deployment — starting with supervised operation and gradually expanding autonomy — lets operators calibrate their confidence. Independent **third-party validation**, public incident reporting, and honest communication about limitations also matter. Trust must be earned incrementally and can be lost in a single failure.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-near-miss-reporting",
+    category: "Ethics",
+    chip: "Near-miss reporting",
+    question: "What is a near-miss and why is it reported?",
+    answer: `A **near-miss** is an unplanned event that did not result in injury or damage but had the potential to. Reporting them is critical because they reveal **latent hazards** before a serious incident occurs — Heinrich's pyramid suggests many near-misses precede each major accident. A blame-free reporting culture encourages workers to share these events openly. Analyzing near-misses drives systemic fixes and is a leading indicator of safety health.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-safety-case-methodology",
+    category: "Ethics",
+    chip: "Safety case methodology",
+    question: "What is \"safety case\" methodology?",
+    answer: `A **safety case** is a structured, documented argument that a system is acceptably safe for a defined operation in a defined environment. It combines **claims** (the system is safe), **evidence** (test results, analyses, operational data), and **reasoning** linking the two, often visualized using **Goal Structuring Notation (GSN)**. Regulators in aviation, rail, and nuclear industries frequently require safety cases. The approach forces designers to make assumptions explicit and defendable.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-drone-camera-privacy",
+    category: "Ethics",
+    chip: "Drone camera privacy",
+    question: "How do you handle privacy when drones carry cameras?",
+    answer: `Privacy is managed through **data minimization** (record only what the mission requires), **geofencing** to avoid sensitive areas, and **on-board redaction** such as automatic blurring of faces and license plates. Clear **retention policies**, access controls, and audit logs limit downstream misuse. Operators should provide **public notice** of flight areas and comply with regulations like GDPR or local aerial surveillance laws. Privacy-by-design beats bolt-on fixes after deployment.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-human-on-vs-in-loop",
+    category: "Ethics",
+    chip: "On-the-loop vs in-the-loop",
+    question: "What is \"human-on-the-loop\" vs \"human-in-the-loop\"?",
+    answer: `**Human-in-the-loop** means a person actively approves each significant action — the system cannot proceed without consent. **Human-on-the-loop** means the system acts autonomously, but a supervisor monitors and can intervene or override at any time. In-the-loop offers tighter control but does not scale; on-the-loop scales but demands strong situational awareness and reliable interrupt mechanisms. The choice depends on **risk, latency, and operator workload**.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-bystander-emergency-stop",
+    category: "Ethics",
+    chip: "Bystander e-stop",
+    question: "Should autonomous systems have an emergency-stop accessible to bystanders?",
+    answer: `For ground robots and stationary machinery, **publicly accessible e-stops** are widely considered best practice and often required by standards like ISO 13850. For airborne drones, a physical bystander button is impractical, so equivalents include **geofenced no-fly zones**, RF kill switches, and visible identification for reporting. The principle is that anyone endangered should have a **realistic path to halt the threat**. Misuse risk is real but generally outweighed by safety benefit.
+
+*General knowledge.*`
+  },
+
+  {
+    id: "aq-ethical-ai-industrial",
+    category: "Ethics",
+    chip: "Ethical AI in industry",
+    question: "What is \"ethical AI\" in an industrial context?",
+    answer: `Ethical AI in industry means designing and operating systems that are **safe, fair, transparent, and accountable**. Practically, this includes bias testing on training data, **explainability** for operator decisions, robust failure modes, and clear human oversight. It also covers **worker impact** — using AI to augment rather than surveil employees — and environmental responsibility. Frameworks like the EU AI Act, ISO/IEC 42001, and NIST AI RMF provide concrete guidance.
 
 *General knowledge.*`
   }
