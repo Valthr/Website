@@ -30,7 +30,7 @@ const STOPWORDS = new Set([
   'specific','still','tell','tells','thing','things','think','time',
   'tried','try','walk','want','way','whether','whose','work',
   'works','yet',
-  'valthr','bapco','report','project','drone','drones',
+  'report','project',
 ]);
 
 function tokenize(text) {

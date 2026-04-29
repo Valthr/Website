@@ -13,10 +13,11 @@ window.ValthrClassifier = (function () {
 
   const INDEX_URL = 'assets/data/qa-index.json';
 
-  // Thresholds tuned via tools/test-classifier.js (see PR description for stats).
-  // Score distribution on 34 fuzzy queries: min 0.10, median 0.29, max 0.58.
-  const T_HIGH = 0.32; // strong match — surface the answer directly
-  const T_MED  = 0.18; // related — surface with a softer "this might be related" framing
+  // Thresholds tuned via tools/test-classifier.js.
+  const T_HIGH = 0.32; // strong match — "Closest match: ..."
+  const T_MED  = 0.12; // related     — "This might be related: ..."
+  const T_LOW  = 0.02; // weak hit    — "Not sure I have a great match — closest is ..."
+  // Below T_LOW = no token overlap at all → friendly fallback prompt
 
   const STOPWORDS = new Set([
     'a', 'an', 'and', 'are', 'as', 'at', 'be', 'been', 'being', 'but', 'by',
@@ -39,7 +40,9 @@ window.ValthrClassifier = (function () {
     'specific', 'still', 'tell', 'tells', 'thing', 'things', 'think', 'time',
     'tried', 'try', 'walk', 'want', 'way', 'whether', 'whose', 'work',
     'works', 'yet',
-    'valthr', 'bapco', 'report', 'project', 'drone', 'drones',
+    'report', 'project',
+    // bapco/valthr/drone/drones intentionally NOT stopwords — they are
+    // legitimate query subjects. Low IDF naturally limits their weight.
   ]);
 
   function tokenize(text) {
@@ -143,7 +146,8 @@ window.ValthrClassifier = (function () {
   function confidence(score) {
     if (score >= T_HIGH) return 'high';
     if (score >= T_MED) return 'medium';
-    return 'low';
+    if (score >= T_LOW) return 'weak';
+    return 'none';
   }
 
   // Kick off the load eagerly (lazy fetch, doesn't block anything else)
@@ -158,5 +162,6 @@ window.ValthrClassifier = (function () {
     confidence,
     T_HIGH,
     T_MED,
+    T_LOW,
   };
 })();

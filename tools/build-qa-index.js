@@ -41,7 +41,11 @@ const STOPWORDS = new Set([
   'tried', 'try', 'walk', 'want', 'way', 'whether', 'whose', 'work',
   'works', 'yet',
   // Domain-universal — present in nearly every Q&A so contributes no signal
-  'valthr', 'bapco', 'report', 'project', 'drone', 'drones',
+  // Truly universal — appear in nearly every Q&A and add zero signal
+  'report', 'project',
+  // bapco/valthr/drone/drones are NOT stopwords — they're legitimate query
+  // subjects ("what is BAPCO?"). Their IDF will be low (they appear in most
+  // docs) so they won't dominate scores, but they'll register as tokens.
 ]);
 
 function tokenize(text) {

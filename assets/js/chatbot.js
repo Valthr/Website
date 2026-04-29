@@ -313,12 +313,16 @@ ${ctx}`;
       }
       if (conf === 'medium') {
         return renderFallbackAnswer(userText,
-          `_This might be related to your question — **${top.qa.chip}**_\n\n${top.qa.answer}\n\n*If this isn't what you meant, try the autocomplete suggestions._`);
+          `_This might be related — **${top.qa.chip}**_\n\n${top.qa.answer}\n\n*If this isn't what you meant, try the autocomplete suggestions._`);
+      }
+      if (conf === 'weak') {
+        return renderFallbackAnswer(userText,
+          `_I'm not sure I have a great match — closest in the report is **${top.qa.chip}**_\n\n${top.qa.answer}\n\n*If this isn't what you meant, try a keyword like "cost", "risk", "fleet", or "regulations" and pick from autocomplete._`);
       }
     }
 
     return renderFallbackAnswer(userText,
-      "I couldn't match that to a curated answer. Try typing a keyword (e.g. \"cost\", \"risk\", \"BCAA\") and pick from the autocomplete list.");
+      "I couldn't find anything in the report that matches that. The chat is grounded in the Valthr research report — try a keyword like \"cost\", \"risk\", \"fleet\", \"BCAA\", or \"routing\" and pick from the autocomplete list.");
   }
 
   function renderFallbackAnswer(userText, reply) {
