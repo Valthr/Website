@@ -1,34 +1,13 @@
-// chatbot.js — Valthr AI Research Assistant
-// Depends on: window.REPORT_CONTEXT (from report-extract.js), marked.js (CDN)
+// chatbot.js — Valthr Research Assistant
+// Uses precomputed Q&A pairs grounded in the Valthr report.
+// Depends on: window.VALTHR_QA (assets/data/qa.js), marked.js (CDN, optional).
 
 window.ValthrChat = (function () {
 
-  // ── API configuration ──────────────────────────────────────────────────────
-  // TODO: Replace with your Gemini API key before deploying
-  const VALTHR_GEMINI_KEY = 'AIzaSyD0BtkfnvJFsmc25UJwCIVrC-XfiPetq2g';
-  const GEMINI_MODEL = 'gemini-2.0-flash-lite';
-  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${VALTHR_GEMINI_KEY}`;
-
-  let history = []; // [{role: 'user'|'model', parts: [{text}]}]
-  let systemPrompt = null;
   let isTyping = false;
+  let history = []; // tracks transcript for the reset button only
 
-  function buildSystemPrompt() {
-    const ctx = window.REPORT_CONTEXT || '[Report text not loaded]';
-    return `You are a research assistant for Valthr, an autonomous drone delivery service operating at the BAPCO industrial complex in Bahrain.
-
-You answer questions ONLY based on the research report provided below. If a question cannot be answered from the report, say clearly: "The report does not cover that topic."
-
-Keep answers concise, factual, and formatted in markdown where helpful. Do not speculate beyond the report's content.
-
-Temperature is set low (0.2) — stick closely to what the report says.
-
----
-
-RESEARCH REPORT:
-
-${ctx}`;
-  }
+  // ── Lifecycle ──────────────────────────────────────────────────────────────
 
   function init() {
     const placeholder = document.getElementById('chat-placeholder');
@@ -37,7 +16,7 @@ ${ctx}`;
     if (placeholder) placeholder.style.display = 'none';
     if (container) container.style.display = 'flex';
 
-    systemPrompt = buildSystemPrompt();
+    renderSuggestions();
     showChatInterface();
     wireControls();
   }
@@ -48,10 +27,26 @@ ${ctx}`;
 
     if (history.length === 0) {
       appendMessage('model',
-        'Hello! I\'m grounded in the Valthr research report on autonomous drone delivery at BAPCO.\n\n' +
-        'Ask me about the routing algorithm, fleet optimisation, delivery network, cost analysis, or any other topic covered in the report.'
+        "Hello! I'm grounded in the Valthr research report on autonomous drone delivery at BAPCO.\n\n" +
+        "Pick one of the suggested questions below for a curated answer covering the routing algorithm, fleet, costs, risks, KPIs, contract terms and more."
       );
     }
+  }
+
+  function renderSuggestions() {
+    const list = document.querySelector('#chat-suggestions .chat-suggestions-list');
+    if (!list) return;
+
+    const items = window.VALTHR_QA || [];
+    list.innerHTML = '';
+    items.forEach(qa => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chat-suggestion-chip';
+      btn.dataset.qaId = qa.id;
+      btn.textContent = qa.chip || qa.question;
+      list.appendChild(btn);
+    });
   }
 
   function wireControls() {
@@ -60,13 +55,13 @@ ${ctx}`;
     const clearBtn  = document.getElementById('chat-clear');
 
     if (chatForm) {
-      chatForm.addEventListener('submit', async (e) => {
+      chatForm.addEventListener('submit', e => {
         e.preventDefault();
         if (!chatInput || !chatInput.value.trim() || isTyping) return;
         const text = chatInput.value.trim();
         chatInput.value = '';
         autoResizeTextarea(chatInput);
-        await sendMessage(text);
+        handleFreeText(text);
       });
     }
 
@@ -91,66 +86,71 @@ ${ctx}`;
       });
     }
 
-    document.querySelectorAll('.chat-suggestion-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        if (isTyping) return;
-        const text = chip.dataset.prompt || chip.textContent.trim();
-        sendMessage(text);
+    // Delegate so dynamically rendered chips work too.
+    const sugWrap = document.getElementById('chat-suggestions');
+    if (sugWrap) {
+      sugWrap.addEventListener('click', e => {
+        const chip = e.target.closest('.chat-suggestion-chip');
+        if (!chip || isTyping) return;
+        const qa = (window.VALTHR_QA || []).find(item => item.id === chip.dataset.qaId);
+        if (!qa) return;
+        answerWith(qa);
       });
-    });
+    }
   }
 
-  async function sendMessage(userText) {
+  // ── Conversation handlers ──────────────────────────────────────────────────
+
+  function answerWith(qa) {
     const sug = document.getElementById('chat-suggestions');
     if (sug) sug.classList.add('is-hidden');
 
-    appendMessage('user', userText);
-    history.push({ role: 'user', parts: [{ text: userText }] });
+    appendMessage('user', qa.question);
+    history.push({ role: 'user', text: qa.question });
 
     showTyping(true);
-
-    const payload = {
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: history,
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 1024
-      }
-    };
-
-    try {
-      const res = await fetch(GEMINI_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const msg = err.error?.message || `API error ${res.status}`;
-        const isQuota = res.status === 429
-          || msg.toLowerCase().includes('quota')
-          || msg.toLowerCase().includes('resource_exhausted')
-          || msg.toLowerCase().includes('rate limit');
-        const userMsg = isQuota
-          ? 'API quota exceeded. To fix: go to aistudio.google.com → your API key → enable billing, or create a new key in a fresh project to reset the free tier. The chatbot will work again once billing is enabled.'
-          : `Error: ${msg}`;
-        appendMessage('error', userMsg);
-        showTyping(false);
-        return;
-      }
-
-      const data = await res.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '(No response received)';
-
-      history.push({ role: 'model', parts: [{ text: reply }] });
+    const delay = computeTypingDelay(qa.answer);
+    setTimeout(() => {
       showTyping(false);
-      appendMessage('model', reply);
+      appendMessage('model', qa.answer);
+      history.push({ role: 'model', text: qa.answer });
+      revealSuggestionsAfterReply();
+    }, delay);
+  }
 
-    } catch (err) {
+  function handleFreeText(text) {
+    appendMessage('user', text);
+    history.push({ role: 'user', text });
+
+    showTyping(true);
+    setTimeout(() => {
       showTyping(false);
-      appendMessage('error', `Network error: ${err.message}. Please check your connection.`);
-    }
+      const fallback =
+        "I can only answer from a curated set of questions about the Valthr research report. " +
+        "Pick one of the suggestions below — they cover the routing algorithm, fleet design, costs, risks, KPIs, contract terms, and more.";
+      appendMessage('model', fallback);
+      history.push({ role: 'model', text: fallback });
+
+      const sug = document.getElementById('chat-suggestions');
+      if (sug) {
+        sug.classList.remove('is-hidden');
+        sug.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 600);
+  }
+
+  function revealSuggestionsAfterReply() {
+    // Re-show chips after each curated answer so users can ask another.
+    const sug = document.getElementById('chat-suggestions');
+    if (sug) sug.classList.remove('is-hidden');
+  }
+
+  // ── UI helpers ─────────────────────────────────────────────────────────────
+
+  function computeTypingDelay(text) {
+    // Feels live without being annoying — between 500ms and 1400ms.
+    const len = (text || '').length;
+    return Math.min(1400, 500 + Math.floor(len / 4));
   }
 
   function appendMessage(role, text) {
@@ -163,14 +163,10 @@ ${ctx}`;
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble';
 
-    if (role === 'error') {
-      bubble.innerHTML = `<span class="chat-error-icon">⚠</span> ${escapeHtml(text)}`;
+    if (window.marked) {
+      bubble.innerHTML = window.marked.parse(text, { breaks: true });
     } else {
-      if (window.marked) {
-        bubble.innerHTML = window.marked.parse(text, { breaks: true });
-      } else {
-        bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
-      }
+      bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
     }
 
     div.appendChild(bubble);

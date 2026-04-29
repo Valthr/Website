@@ -54,7 +54,7 @@
 
   <!-- Site data (load before scripts that depend on them) -->
   <script src="assets/data/network.js"></script>
-  <script src="assets/data/report-extract.js"></script>
+  <script src="assets/data/qa.js"></script>
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="assets/css/main.css?v=4">
@@ -865,7 +865,7 @@
         Ask the Report
       </h2>
       <p class="section-subtitle mx-auto text-center">
-        Powered by Gemini 2.0 Flash, grounded exclusively in the Valthr research report.
+        Curated answers grounded exclusively in the Valthr research report — pick a question to get a precise, sourced response.
       </p>
       <button id="chat-tour-btn" aria-label="Take a tour of the research assistant">
         <i data-lucide="compass"></i>
@@ -904,14 +904,10 @@
           <span class="typing-dot" aria-hidden="true"></span>
         </div>
 
-        <!-- Example questions -->
-        <div id="chat-suggestions" aria-label="Example questions">
-          <span class="chat-suggestions-label">Try asking</span>
-          <div class="chat-suggestions-list">
-            <button type="button" class="chat-suggestion-chip" data-prompt="Will the delivery route plans be sent to the drones via Wi-Fi mesh or LTE/5G?">Will the delivery route plans be sent to the drones via Wi-Fi mesh or LTE/5G?</button>
-            <button type="button" class="chat-suggestion-chip" data-prompt="Is Agile-Scrum the most appropriate project management methodology for this proposal?">Is Agile-Scrum the most appropriate project management methodology for this proposal?</button>
-            <button type="button" class="chat-suggestion-chip" data-prompt="What is the estimated CAPEX for operations and maintenance?">What is the estimated CAPEX for operations and maintenance?</button>
-          </div>
+        <!-- Example questions (rendered from window.VALTHR_QA in chatbot.js) -->
+        <div id="chat-suggestions" aria-label="Suggested questions">
+          <span class="chat-suggestions-label">Pick a question</span>
+          <div class="chat-suggestions-list"></div>
         </div>
 
         <!-- Input form -->
@@ -932,7 +928,7 @@
 
         <!-- Disclaimer -->
         <p class="chat-disclaimer" role="note">
-          Answers are based solely on the Valthr research report &nbsp;·&nbsp; Gemini 2.0 Flash &nbsp;·&nbsp; temperature 0.2
+          Answers are pre-written by the Valthr team and grounded exclusively in the research report
         </p>
 
       </div><!-- /chat-interface -->
@@ -1021,7 +1017,7 @@
       </div>
 
       <div class="footer-meta">
-        <p>Built with Leaflet.js + Gemini 2.0 Flash</p>
+        <p>Built with Leaflet.js</p>
         <p>GitHub Pages &nbsp;·&nbsp; Static Site</p>
         <p style="margin-top:0.5rem">Group 01 — Valthr</p>
         <p>MSIN0068 Project Management</p>
