@@ -1,0 +1,18 @@
+name = "valthr-chat-logger"
+main = "src/index.js"
+compatibility_date = "2026-04-01"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# After running `wrangler kv:namespace create LOGS` (see README.md), paste
+# the returned `id` value into the binding below.
+# ─────────────────────────────────────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "LOGS"
+id = "9d682a399f2f428a86976f2c95d94342"
+
+# Optional: pin to your CF account if `wrangler login` resolves multiple.
+# account_id = "your-cloudflare-account-id"
+
+# DASHBOARD_TOKEN is set as a secret via:
+#   wrangler secret put DASHBOARD_TOKEN
+# Do NOT add it to this file.
