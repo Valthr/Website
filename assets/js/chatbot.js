@@ -140,6 +140,9 @@ ${ctx}`;
     const chatInput = document.getElementById('chat-input');
     const clearBtn  = document.getElementById('chat-clear');
 
+    wireAutocomplete(chatInput);
+    renderRandomChips();
+
     if (chatForm) {
       chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -166,6 +169,7 @@ ${ctx}`;
         history = [];
         const msgs = document.getElementById('chat-messages');
         if (msgs) msgs.innerHTML = '';
+        renderRandomChips();
         const sug = document.getElementById('chat-suggestions');
         if (sug) sug.classList.remove('is-hidden');
         showChatInterface();
@@ -282,9 +286,8 @@ ${ctx}`;
     if (!fallbackMode) {
       fallbackMode = true;
       appendMessage('model',
-        '_AI chat is temporarily unavailable — switching to curated answers from the Valthr team. Pick any question below._'
+        '_AI chat is temporarily unavailable — switching to curated answers from the Valthr team. Type any keyword to find one (e.g. "cost", "risk", "GPS"), or use the Reset button to see fresh suggestions._'
       );
-      ensureFullChipList();
     }
     return handleFallback(originalUserText, qaId);
   }
@@ -298,15 +301,13 @@ ${ctx}`;
 
     const reply = qa
       ? qa.answer
-      : "I can only answer the curated questions below while AI chat is unavailable. Pick one and I'll show the precomputed answer.";
+      : "I couldn't match that to a curated answer. Try typing a keyword (e.g. \"cost\", \"risk\", \"BCAA\") and pick from the autocomplete list.";
 
     const delay = computeTypingDelay(reply);
     setTimeout(() => {
       showTyping(false);
       appendMessage('model', reply);
       history.push({ role: 'model', parts: [{ text: reply }] });
-      const sug = document.getElementById('chat-suggestions');
-      if (sug) sug.classList.remove('is-hidden');
     }, delay);
   }
 
@@ -322,22 +323,27 @@ ${ctx}`;
       showTyping(false);
       appendMessage('model', qa.answer);
       history.push({ role: 'model', parts: [{ text: qa.answer }] });
-      if (sug) sug.classList.remove('is-hidden');
     }, delay);
   }
 
-  // Append any Q&A entries that aren't already represented as chips.
-  function ensureFullChipList() {
+  // Render up to 5 random Q&A entries as suggestion chips.
+  // Called once on init and again on Reset Chat — never after a message.
+  function renderRandomChips() {
     const list = document.querySelector('#chat-suggestions .chat-suggestions-list');
     if (!list) return;
     const items = window.VALTHR_QA || [];
-    const existingIds = new Set(
-      Array.from(list.querySelectorAll('.chat-suggestion-chip'))
-        .map(chip => chip.dataset.qaId)
-        .filter(Boolean)
-    );
-    items.forEach(qa => {
-      if (existingIds.has(qa.id)) return;
+    if (!items.length) return;
+
+    const pool = items.slice();
+    const picked = [];
+    const n = Math.min(5, pool.length);
+    while (picked.length < n) {
+      const idx = Math.floor(Math.random() * pool.length);
+      picked.push(pool.splice(idx, 1)[0]);
+    }
+
+    list.innerHTML = '';
+    picked.forEach(qa => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'chat-suggestion-chip';
@@ -346,8 +352,6 @@ ${ctx}`;
       btn.textContent = qa.chip || qa.question;
       list.appendChild(btn);
     });
-    const sug = document.getElementById('chat-suggestions');
-    if (sug) sug.classList.remove('is-hidden');
   }
 
   function findQAById(id) {
@@ -413,6 +417,112 @@ ${ctx}`;
   function autoResizeTextarea(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  // ── Autocomplete ───────────────────────────────────────────────────────────
+
+  function wireAutocomplete(input) {
+    const list = document.getElementById('chat-autocomplete');
+    if (!input || !list) return;
+
+    const MAX_RESULTS = 6;
+    let items = [];
+    let activeIdx = -1;
+
+    function close() {
+      list.hidden = true;
+      list.innerHTML = '';
+      items = [];
+      activeIdx = -1;
+    }
+
+    function update() {
+      const q = input.value.trim().toLowerCase();
+      if (!q) return close();
+      const all = window.VALTHR_QA || [];
+      // Score: prefer chip-prefix > chip-substring > question-substring
+      const scored = [];
+      for (const qa of all) {
+        const chip = (qa.chip || '').toLowerCase();
+        const question = (qa.question || '').toLowerCase();
+        let score = 0;
+        if (chip.startsWith(q)) score = 3;
+        else if (chip.includes(q)) score = 2;
+        else if (question.includes(q)) score = 1;
+        if (score) scored.push({ qa, score });
+      }
+      scored.sort((a, b) => b.score - a.score);
+      items = scored.slice(0, MAX_RESULTS).map(s => s.qa);
+      activeIdx = -1;
+      if (!items.length) return close();
+      list.innerHTML = items.map((qa, i) =>
+        `<button type="button" class="chat-ac-item" role="option" data-idx="${i}">` +
+          `<span class="chat-ac-item-cat">${escapeHtml(qa.category)}</span>` +
+          highlight(qa.chip, q) +
+        `</button>`
+      ).join('');
+      list.hidden = false;
+    }
+
+    function highlight(text, q) {
+      const t = text || '';
+      const idx = t.toLowerCase().indexOf(q);
+      if (idx < 0) return escapeHtml(t);
+      return escapeHtml(t.slice(0, idx)) +
+        '<mark>' + escapeHtml(t.slice(idx, idx + q.length)) + '</mark>' +
+        escapeHtml(t.slice(idx + q.length));
+    }
+
+    function setActive(idx) {
+      const buttons = list.querySelectorAll('.chat-ac-item');
+      buttons.forEach((el, i) => el.classList.toggle('is-active', i === idx));
+      if (idx >= 0 && buttons[idx]) buttons[idx].scrollIntoView({ block: 'nearest' });
+      activeIdx = idx;
+    }
+
+    function selectItem(qa) {
+      close();
+      input.value = '';
+      autoResizeTextarea(input);
+      routeMessage(qa.question, qa.id);
+    }
+
+    input.addEventListener('input', update);
+    input.addEventListener('focus', update);
+    // Delay close on blur so click events on list items still fire
+    input.addEventListener('blur', () => setTimeout(close, 150));
+
+    // Keydown listener registered FIRST so it can intercept Enter before submit
+    input.addEventListener('keydown', e => {
+      if (list.hidden || !items.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActive((activeIdx + 1) % items.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActive((activeIdx - 1 + items.length) % items.length);
+      } else if (e.key === 'Enter' && activeIdx >= 0 && !e.shiftKey) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        selectItem(items[activeIdx]);
+      } else if (e.key === 'Tab' && items.length) {
+        e.preventDefault();
+        selectItem(items[0]);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        close();
+      }
+    });
+
+    // mousedown (not click) so it fires before the input's blur handler
+    list.addEventListener('mousedown', e => {
+      const btn = e.target.closest('.chat-ac-item');
+      if (!btn) return;
+      e.preventDefault();
+      const idx = parseInt(btn.dataset.idx, 10);
+      const qa = items[idx];
+      if (qa) selectItem(qa);
+    });
   }
 
   function escapeHtml(str) {
