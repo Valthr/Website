@@ -66,7 +66,9 @@ window.ValthrClassifier = (function () {
 
   function load() {
     if (indexPromise) return indexPromise;
-    indexPromise = fetch(INDEX_URL, { cache: 'force-cache' })
+    // No `cache: 'force-cache'` — let the browser revalidate normally so a
+    // freshly built qa-index.json is picked up after a deploy / git pull.
+    indexPromise = fetch(INDEX_URL)
       .then(r => {
         if (!r.ok) throw new Error('Failed to load ' + INDEX_URL + ': ' + r.status);
         return r.json();
