@@ -8,5 +8,6 @@
 window.VALTHR_CONFIG = {
   // Obtain a key at https://aistudio.google.com/apikey
   // Restrict it to the HTTP referrer of this site in the Google Cloud Console.
+  // ⚠️  Replace the placeholder below — NEVER commit a real key to the repository.
   geminiKey: 'YOUR_GEMINI_API_KEY_HERE'
 };
