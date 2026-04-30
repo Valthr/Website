@@ -9,4 +9,4 @@ prompt.md
 claude/
 
 # Local site config — contains the Gemini API key; never commit
-assets/data/config.js
+# assets/data/config.js
